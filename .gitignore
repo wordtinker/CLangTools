@@ -1,0 +1,4 @@
+LangTools/bin/
+LangTools/obj/
+*.user
+*.suo
