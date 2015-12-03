@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LangTools"
         mc:Ignorable="d"
-        Title="LangTools" Height="350" Width="525" MinWidth="800" MinHeight="600">
+        Height="600" Width="800" MinWidth="800" MinHeight="600">
     <Window.Resources>
         <Style TargetType="Button" x:Key="BottomButton">
             <Setter Property="Width" Value="85"/>

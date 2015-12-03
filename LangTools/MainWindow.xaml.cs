@@ -23,21 +23,32 @@ namespace LangTools
         public MainWindow()
         {
             InitializeComponent();
+            Logger.Write("Main has started.", Severity.DEBUG);
         }
 
         private void FileExit_click(object sender, RoutedEventArgs e)
         {
-            // TODO:
+            this.Close();
         }
 
+        /// <summary>
+        /// Shows modal window to manage languages.
+        /// </summary>
         private void LanguagesManage_click(object sender, RoutedEventArgs e)
         {
-            // TODO:
+            
+            // TODO: 
+            LangWindow dialog = new LangWindow();
+            // Ensure the alt+tab is working properly
+            dialog.Owner = this;
+            dialog.ShowDialog();
         }
 
         private void HelpAbout_click(object sender, RoutedEventArgs e)
         {
-            // TODO:
+            MessageBox.Show(string.Format("{0}: {1}",
+                App.Current.Properties["appName"],
+                CoreAssembly.Version), "About");
         }
     }
 }
