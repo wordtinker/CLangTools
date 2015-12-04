@@ -36,7 +36,6 @@ namespace LangTools
         /// </summary>
         private void LanguagesManage_click(object sender, RoutedEventArgs e)
         {
-            
             // TODO: 
             LangWindow dialog = new LangWindow();
             // Ensure the alt+tab is working properly
