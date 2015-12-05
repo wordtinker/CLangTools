@@ -97,13 +97,19 @@ namespace LangTools
         /// <param name="e"></param>
         private void LanguageChanged(object sender, SelectionChangedEventArgs e)
         {
+            //Remove old binding from projects and project combobox
+            projectsBox.ItemsSource = null;
+            projects = null;
+            // Stop watching previous corpus folder. Have to do stop watcher
+            // from raising event that lead to insertion into Null project list.
+            corpusWatcher.EnableRaisingEvents = false;
+
             // Ensure that one of the languages is always selected
             if (languagesBox.SelectedIndex == - 1)
             {
                 Logger.Write("Language box selection if fixed.", Severity.DEBUG);
                 // if there are no languages to select "set;" will be ignored
                 // and wont raise new SelectionChanged Event.
-                projectsBox.ItemsSource = null;
                 languagesBox.SelectedIndex = 0;
             }
             // Work with valid language
@@ -113,8 +119,6 @@ namespace LangTools
                 // Fetch the language
                 Lingva selectedLang = (Lingva)languagesBox.SelectedItem;
                 string corpusDir = Path.Combine(selectedLang.Folder, (string)App.Current.Properties["corpusDir"]);
-                // Stop watching previous corpus folder.
-                corpusWatcher.EnableRaisingEvents = false;
                 // Load the list of projects into projects combobox
                 List<string> projectsInDir;
                 if (InitializeProjectBox(corpusDir, out projectsInDir))
@@ -130,9 +134,6 @@ namespace LangTools
 
         private bool InitializeProjectBox(string corpusDir, out List<string> projectsInDir)
         {
-            //Remove old binding from combobox.
-            projectsBox.ItemsSource = null;
-            
             // Get every project from corpus directory
             Logger.Write(string.Format("Going to check {0} for projects.", corpusDir), Severity.DEBUG);
             try
@@ -151,7 +152,6 @@ namespace LangTools
             projects = new ObservableCollection<string>(projectsInDir);
             projectsBox.ItemsSource = projects;
             projectsBox.SelectedIndex = 0;
-
             return true;
         }
 
