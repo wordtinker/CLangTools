@@ -121,9 +121,8 @@ namespace LangTools
 
         private void HandleException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
         {
-            Logger.Write(e.Exception.Message);
+            Logger.Write(e.ToString());
             ReleaseStorage();
-            // TODO: add Verbosity
         }
 
         private void ApplicationExit(object sender, ExitEventArgs e)

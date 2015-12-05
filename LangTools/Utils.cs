@@ -229,5 +229,60 @@ namespace LangTools
                 cmd.ExecuteNonQuery();
             }
         }
+
+        /// <summary>
+        /// Return projects for chosen language.
+        /// </summary>
+        /// <param name="selectedLang"></param>
+        /// <returns></returns>
+        internal List<string> GetProjects(Lingva selectedLang)
+        {
+            List<string> projects = new List<string>();
+            string sql = "SELECT project FROM Files WHERE lang=@lang GROUP BY project";
+            using (SQLiteCommand cmd = new SQLiteCommand(sql, dbConn))
+            {
+                SQLiteParameter param = new SQLiteParameter("@lang");
+                param.Value = selectedLang.Language;
+                param.DbType = System.Data.DbType.String;
+                cmd.Parameters.Add(param);
+
+                SQLiteDataReader dr = cmd.ExecuteReader();
+                while (dr.Read())
+                {
+                    projects.Add((string)dr[0]);
+                }
+                dr.Close();
+            }
+            return projects;
+            // TODO: Test
+        }
+
+        internal void RemoveProject(string language, string folder)
+        {
+            SQLiteParameter langParam = new SQLiteParameter("@lang");
+            langParam.Value = language;
+            langParam.DbType = System.Data.DbType.String;
+
+            SQLiteParameter projectParam = new SQLiteParameter("@project");
+            projectParam.Value = folder;
+            projectParam.DbType = System.Data.DbType.String;
+
+            string sql = "DELETE FROM Files WHERE lang=@lang AND project=@project";
+            using (SQLiteCommand cmd = new SQLiteCommand(sql, dbConn))
+            {
+                cmd.Parameters.Add(langParam);
+                cmd.Parameters.Add(projectParam);
+                cmd.ExecuteNonQuery();
+            }
+
+            sql = "DELETE FROM Words WHERE lang=@lang AND project=@project";
+            using (SQLiteCommand cmd = new SQLiteCommand(sql, dbConn))
+            {
+                cmd.Parameters.Add(langParam);
+                cmd.Parameters.Add(projectParam);
+                cmd.ExecuteNonQuery();
+            }
+            // TODO: Test
+        }
     }
 }

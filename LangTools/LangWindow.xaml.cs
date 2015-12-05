@@ -82,7 +82,6 @@ namespace LangTools
             catch (Exception e)
             {
                 // Not a critical error, could be fixed later.
-                // TODO: could it be fixed?
                 string msg = string.Format("Something is wrong during subfolder creation: {0}", e.ToString());
                 Logger.Write(msg);
                 MessageBox.Show(msg);

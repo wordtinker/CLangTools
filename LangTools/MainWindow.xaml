@@ -27,9 +27,14 @@
         <DockPanel DockPanel.Dock="Top" VerticalAlignment="Top">
             <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
                 <Label Content="Language"/>
-                <ComboBox x:Name="languagesBox" Width="120"/>
+                <ComboBox x:Name="languagesBox" Width="120"
+                          ItemsSource="{Binding}"
+                          DisplayMemberPath="Language"
+                          SelectionChanged="LanguageChanged"/>
                 <Label Content="Project"/>
-                <ComboBox x:Name="projectsBox" Width="250"/>
+                <ComboBox x:Name="projectsBox" Width="250"
+                          ItemsSource="{Binding}"
+                          SelectionChanged="ProjectChanged"/>
                 <Button Content=">" Width="75" Margin="5,0"/>
             </StackPanel>
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
