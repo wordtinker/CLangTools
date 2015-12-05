@@ -77,9 +77,8 @@ namespace LangTools
         /// </summary>
         private void LanguagesManage_click(object sender, RoutedEventArgs e)
         {
-            // TODO: 
-            LangWindow dialog = new LangWindow();
-            // Ensure the alt+tab is working properly
+            LangWindow dialog = new LangWindow(languages);
+            // Ensure the alt+tab is working properly.
             dialog.Owner = this;
             dialog.ShowDialog();
         }
@@ -98,22 +97,34 @@ namespace LangTools
         /// <param name="e"></param>
         private void LanguageChanged(object sender, SelectionChangedEventArgs e)
         {
-            // TODO: What happens when we delete the last element ?
-            Logger.Write("New language is chosen.", Severity.DEBUG);
-            // Fetch the language
-            Lingva selectedLang = (Lingva)languagesBox.SelectedItem;
-            string corpusDir = Path.Combine(selectedLang.Folder, (string)App.Current.Properties["corpusDir"]);
-            // Stop watching previous corpus folder.
-            corpusWatcher.EnableRaisingEvents = false;
-            // Load the list of projects into projects combobox
-            List<string> projectsInDir;
-            if(InitializeProjectBox(corpusDir, out projectsInDir))
+            // Ensure that one of the languages is always selected
+            if (languagesBox.SelectedIndex == - 1)
             {
-                // Start watching new language corpus folder
-                corpusWatcher.Path = corpusDir;
-                corpusWatcher.EnableRaisingEvents = true;
-                // Remove old projects from DB
-                RemoveOldProjects(projectsInDir, selectedLang);
+                Logger.Write("Language box selection if fixed.", Severity.DEBUG);
+                // if there are no languages to select "set;" will be ignored
+                // and wont raise new SelectionChanged Event.
+                projectsBox.ItemsSource = null;
+                languagesBox.SelectedIndex = 0;
+            }
+            // Work with valid language
+            else
+            {
+                Logger.Write("New language is chosen.", Severity.DEBUG);
+                // Fetch the language
+                Lingva selectedLang = (Lingva)languagesBox.SelectedItem;
+                string corpusDir = Path.Combine(selectedLang.Folder, (string)App.Current.Properties["corpusDir"]);
+                // Stop watching previous corpus folder.
+                corpusWatcher.EnableRaisingEvents = false;
+                // Load the list of projects into projects combobox
+                List<string> projectsInDir;
+                if (InitializeProjectBox(corpusDir, out projectsInDir))
+                {
+                    // Start watching new language corpus folder
+                    corpusWatcher.Path = corpusDir;
+                    corpusWatcher.EnableRaisingEvents = true;
+                    // Remove old projects from DB
+                    RemoveOldProjects(projectsInDir, selectedLang);
+                }
             }
         }
 

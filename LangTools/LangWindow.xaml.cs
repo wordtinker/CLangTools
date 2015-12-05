@@ -24,9 +24,10 @@ namespace LangTools
         private Storage storage;
         private ObservableCollection<Lingva> languages;
 
-        public LangWindow()
+        internal LangWindow(ObservableCollection<Lingva> langs)
         {
             storage = (Storage)App.Current.Properties["storage"];
+            this.languages = langs;
             InitializeComponent();
             InitializeData();
         }
@@ -36,7 +37,6 @@ namespace LangTools
         /// </summary>
         private void InitializeData()
         {
-            languages = new ObservableCollection<Lingva>(storage.GetLanguages());
             languagesGrid.ItemsSource = languages;
         }
 
@@ -86,8 +86,6 @@ namespace LangTools
                 Logger.Write(msg);
                 MessageBox.Show(msg);
             }
-
-            // TODO: emit signal.
         }
 
         /// <summary>
@@ -136,8 +134,6 @@ namespace LangTools
                 storage.RemoveLanguage(language);
 
                 languages.Remove(language);
-                
-                // TODO: emit event
             }
         }
 

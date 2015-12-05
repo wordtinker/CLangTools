@@ -121,7 +121,7 @@ namespace LangTools
 
         private void HandleException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
         {
-            Logger.Write(e.ToString());
+            Logger.Write(e.Exception.ToString());
             ReleaseStorage();
         }
 
