@@ -8,24 +8,60 @@ using System.Reflection;
 using System.Data.SQLite;
 using System.Data.Common;
 using System.Data;
+using System.Windows.Threading;
 
 namespace LangTools
 {
+    static class IOTools
+    {
+        internal static bool ListDirectories(string dir, out List<string> foldersInDir)
+        {
+            // Get every directory from directory
+            Logger.Write(string.Format("Going to check {0} for directories.", dir), Severity.DEBUG);
+            try
+            {
+                DirectoryInfo di = new DirectoryInfo(dir);
+                foldersInDir = new List<string>(di.GetDirectories().Select(d => d.Name));
+            }
+            catch (Exception err)
+            {
+                // Do nothing but log and return
+                Logger.Write(string.Format("Something is wrong during directory access: {0}", err.ToString()));
+                foldersInDir = new List<string>();
+                return false;
+            }
+            return true;
+        }
+
+        internal static bool ListFiles(string dir, out List<string> filesInDir)
+        {
+            // Get every project from corpus directory
+            Logger.Write(string.Format("Going to check {0} for files.", dir), Severity.DEBUG);
+            try
+            {
+                DirectoryInfo di = new DirectoryInfo(dir);
+                filesInDir = new List<string>(di.GetFiles("*.txt").Select(d => d.Name));
+            }
+            catch (Exception err)
+            {
+                // Do nothing but log and return
+                Logger.Write(string.Format("Something is wrong during directory access: {0}", err.ToString()));
+                filesInDir = new List<string>();
+                return false;
+            }
+            return true;
+        }
+    }
+
     enum Severity
     {
         DEBUG,
         RELEASE
     }
 
-    class Lingva
-    {
-        public string Language{get; set;}
-        public string Folder{get; set;}
-    }
-
     static class Logger
     {
-        public static string ConfigFile { get; set; }
+        internal static string ConfigFile { get; set; }
 
         private static void Write(string text)
         {
@@ -36,7 +72,7 @@ namespace LangTools
             }
         }
 
-        public static void Write(string text, Severity severity = Severity.RELEASE)
+        internal static void Write(string text, Severity severity = Severity.RELEASE)
         {
             if (ConfigFile != null)
             {
@@ -59,6 +95,41 @@ namespace LangTools
     {
         public static readonly Assembly Reference = typeof(CoreAssembly).Assembly;
         public static readonly Version Version = Reference.GetName().Version;
+    }
+
+    class Lingva
+    {
+        public string Language { get; set; }
+        public string Folder { get; set; }
+    }
+
+    enum DictType
+    {
+        Project,
+        General
+    }
+
+    class Dict
+    {
+        public string FileName { get; set; }
+        public string DictType { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            var item = obj as Dict;
+
+            if (item == null)
+            {
+                return false;
+            }
+
+            return this.FileName == item.FileName && this.DictType == item.DictType;
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
     }
 
     class Storage

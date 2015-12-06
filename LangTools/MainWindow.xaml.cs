@@ -24,20 +24,24 @@ namespace LangTools
     {
         private Storage storage;
         private ObservableCollection<Lingva> languages;
+        private ObservableCollection<Dict> dicts;
         private ObservableCollection<string> projects;
         FileSystemWatcher corpusWatcher;
+        FileSystemWatcher specDictWatcher;
+        FileSystemWatcher genDictWatcher;
 
         public MainWindow()
         {
             storage = (Storage)App.Current.Properties["storage"];
             InitializeComponent();
-            InitializeCorpusWatcher();
+            InitializeWatchers();
             InitializeLanguageBox();
             Logger.Write("Main has started.", Severity.DEBUG);
         }
 
-        private void InitializeCorpusWatcher()
+        private void InitializeWatchers()
         {
+            // Corpus Watcher
             corpusWatcher = new FileSystemWatcher();
             corpusWatcher.NotifyFilter = NotifyFilters.DirectoryName;
             corpusWatcher.Filter = "*.*";
@@ -54,10 +58,54 @@ namespace LangTools
                 projects.Remove(e.Name)));
 
             corpusWatcher.Renamed += (obj, e) => Dispatcher.BeginInvoke(
-                DispatcherPriority.Send, new Action(() => {
+                DispatcherPriority.Send, new Action(() => 
+                {
                     projects.Remove(e.OldName);
                     projects.Add(e.Name);
-                }));
+                }
+                ));
+
+            // Project specific dictionaries Watcher
+            specDictWatcher = new FileSystemWatcher();
+            specDictWatcher.NotifyFilter = NotifyFilters.FileName;
+            specDictWatcher.Filter = "*.txt";
+
+            specDictWatcher.Created += (obj, e) => Dispatcher.BeginInvoke(
+                DispatcherPriority.Send, new Action(() =>
+                dicts.Add(new Dict { FileName=e.Name, DictType=DictType.Project.ToString() })));
+
+            specDictWatcher.Deleted += (obj, e) => Dispatcher.BeginInvoke(
+                DispatcherPriority.Send, new Action(() =>
+                dicts.Remove(new Dict { FileName = e.Name, DictType = DictType.Project.ToString() })));
+
+            specDictWatcher.Renamed += (obj, e) => Dispatcher.BeginInvoke(
+                DispatcherPriority.Send, new Action(() =>
+                {
+                    dicts.Add(new Dict { FileName = e.Name, DictType = DictType.Project.ToString() });
+                    dicts.Remove(new Dict { FileName = e.OldName, DictType = DictType.Project.ToString() });
+                }
+                ));
+
+            // General dictionaries Watcher
+            genDictWatcher = new FileSystemWatcher();
+            genDictWatcher.NotifyFilter = NotifyFilters.FileName;
+            genDictWatcher.Filter = "*.txt";
+
+            genDictWatcher.Created += (obj, e) => Dispatcher.BeginInvoke(
+                DispatcherPriority.Send, new Action(() =>
+                dicts.Add(new Dict { FileName = e.Name, DictType = DictType.General.ToString() })));
+
+            genDictWatcher.Deleted += (obj, e) => Dispatcher.BeginInvoke(
+                DispatcherPriority.Send, new Action(() =>
+                dicts.Remove(new Dict { FileName = e.Name, DictType = DictType.General.ToString() })));
+
+            genDictWatcher.Renamed += (obj, e) => Dispatcher.BeginInvoke(
+                DispatcherPriority.Send, new Action(() =>
+                {
+                    dicts.Add(new Dict { FileName = e.Name, DictType = DictType.General.ToString() });
+                    dicts.Remove(new Dict { FileName = e.OldName, DictType = DictType.General.ToString() });
+                }
+                ));
         }
 
         private void InitializeLanguageBox()
@@ -121,8 +169,12 @@ namespace LangTools
                 string corpusDir = Path.Combine(selectedLang.Folder, (string)App.Current.Properties["corpusDir"]);
                 // Load the list of projects into projects combobox
                 List<string> projectsInDir;
-                if (InitializeProjectBox(corpusDir, out projectsInDir))
+                if (IOTools.ListDirectories(corpusDir, out projectsInDir))
                 {
+                    // Add new binding
+                    projects = new ObservableCollection<string>(projectsInDir);
+                    projectsBox.ItemsSource = projects;
+                    projectsBox.SelectedIndex = 0;
                     // Start watching new language corpus folder
                     corpusWatcher.Path = corpusDir;
                     corpusWatcher.EnableRaisingEvents = true;
@@ -130,29 +182,6 @@ namespace LangTools
                     RemoveOldProjects(projectsInDir, selectedLang);
                 }
             }
-        }
-
-        private bool InitializeProjectBox(string corpusDir, out List<string> projectsInDir)
-        {
-            // Get every project from corpus directory
-            Logger.Write(string.Format("Going to check {0} for projects.", corpusDir), Severity.DEBUG);
-            try
-            {
-                DirectoryInfo di = new DirectoryInfo(corpusDir);
-                projectsInDir = new List<string>(di.GetDirectories().Select(d => d.Name));
-            }
-            catch (Exception err)
-            {
-                // Do nothing but log and return
-                Logger.Write(string.Format("Something is wrong during corpus access: {0}", err.ToString()));
-                projectsInDir = new List<string>();
-                return false;
-            }
-            // Add new binding
-            projects = new ObservableCollection<string>(projectsInDir);
-            projectsBox.ItemsSource = projects;
-            projectsBox.SelectedIndex = 0;
-            return true;
         }
 
         private void RemoveOldProjects(List<string> projectsInDir, Lingva selectedLang)
@@ -170,6 +199,13 @@ namespace LangTools
 
         private void ProjectChanged(object sender, SelectionChangedEventArgs e)
         {
+            // Remove old bindings from dictionaries
+            dicts = null;
+            dictsGrid.ItemsSource = null;
+            // Stop watching both dict folders
+            specDictWatcher.EnableRaisingEvents = false;
+            genDictWatcher.EnableRaisingEvents = false;
+
             // Ensure that one of the projects is always selected
             if (projectsBox.SelectedIndex == -1)
             {
@@ -182,8 +218,56 @@ namespace LangTools
             else
             {
                 Logger.Write("New project is chosen.", Severity.DEBUG);
+                // Update list of dictionaries related to project
+                RedrawDictionaries();
                 // TODO:
+                // Update list of words related to project
+
+                // TODO:
+                // Update list of project files
             }
+        }
+
+        /// <summary>
+        /// Redraws list of dictionaries used in project.
+        /// </summary>
+        private void RedrawDictionaries()
+        {
+            string projectName = (string)projectsBox.SelectedItem;
+            Lingva lang = (Lingva)languagesBox.SelectedItem;
+
+            // Get custom project dictionaries
+            string dictionariesDir = Path.Combine(lang.Folder, (string)App.Current.Properties["dicDir"], projectName);
+            dicts = new ObservableCollection<Dict>();
+            List<string> projectSpecificDics;
+            if (IOTools.ListFiles(dictionariesDir, out projectSpecificDics))
+            {
+                // Add found dictionaries to dict collection.
+                foreach (string fName in projectSpecificDics)
+                {
+                    dicts.Add(new Dict { FileName = fName, DictType = DictType.Project.ToString() });
+                }
+                // Start watching for new specific dict files.
+                specDictWatcher.Path = dictionariesDir;
+                specDictWatcher.EnableRaisingEvents = true;
+            }
+
+            // Get general project dictionaries.
+            string generalDir = Path.Combine(lang.Folder, (string)App.Current.Properties["dicDir"]);
+            List<string> generalDics;
+            if (IOTools.ListFiles(generalDir, out generalDics))
+            {
+                // Combine both specific and general dictionaries
+                foreach (string fName in generalDics)
+                {
+                    dicts.Add(new Dict { FileName = fName, DictType = DictType.General.ToString() });
+                }
+                // Start watching for general dictionaries.
+                genDictWatcher.Path = generalDir;
+                genDictWatcher.EnableRaisingEvents = true;
+            }
+            // Set the new binding
+            dictsGrid.ItemsSource = dicts;
         }
     }
 }
