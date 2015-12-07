@@ -72,17 +72,33 @@ namespace LangTools
 
             specDictWatcher.Created += (obj, e) => Dispatcher.BeginInvoke(
                 DispatcherPriority.Send, new Action(() =>
-                dicts.Add(new Dict { FileName=e.Name, DictType=DictType.Project.ToString() })));
+                dicts.Add(new Dict {
+                    FileName = e.Name,
+                    DictType = DictType.Project.ToString(),
+                    FilePath = e.FullPath
+                })));
 
             specDictWatcher.Deleted += (obj, e) => Dispatcher.BeginInvoke(
                 DispatcherPriority.Send, new Action(() =>
-                dicts.Remove(new Dict { FileName = e.Name, DictType = DictType.Project.ToString() })));
+                dicts.Remove(new Dict {
+                    FileName = e.Name,
+                    DictType = DictType.Project.ToString(),
+                    FilePath = e.FullPath
+                })));
 
             specDictWatcher.Renamed += (obj, e) => Dispatcher.BeginInvoke(
                 DispatcherPriority.Send, new Action(() =>
                 {
-                    dicts.Add(new Dict { FileName = e.Name, DictType = DictType.Project.ToString() });
-                    dicts.Remove(new Dict { FileName = e.OldName, DictType = DictType.Project.ToString() });
+                    dicts.Add(new Dict {
+                        FileName = e.Name,
+                        DictType = DictType.Project.ToString(),
+                        FilePath = e.FullPath
+                    });
+                    dicts.Remove(new Dict {
+                        FileName = e.OldName,
+                        DictType = DictType.Project.ToString(),
+                        FilePath = e.OldFullPath
+                    });
                 }
                 ));
 
@@ -93,17 +109,33 @@ namespace LangTools
 
             genDictWatcher.Created += (obj, e) => Dispatcher.BeginInvoke(
                 DispatcherPriority.Send, new Action(() =>
-                dicts.Add(new Dict { FileName = e.Name, DictType = DictType.General.ToString() })));
+                dicts.Add(new Dict {
+                    FileName = e.Name,
+                    DictType = DictType.General.ToString(),
+                    FilePath = e.FullPath
+                })));
 
             genDictWatcher.Deleted += (obj, e) => Dispatcher.BeginInvoke(
                 DispatcherPriority.Send, new Action(() =>
-                dicts.Remove(new Dict { FileName = e.Name, DictType = DictType.General.ToString() })));
+                dicts.Remove(new Dict {
+                    FileName = e.Name,
+                    DictType = DictType.General.ToString(),
+                    FilePath = e.FullPath
+                })));
 
             genDictWatcher.Renamed += (obj, e) => Dispatcher.BeginInvoke(
                 DispatcherPriority.Send, new Action(() =>
                 {
-                    dicts.Add(new Dict { FileName = e.Name, DictType = DictType.General.ToString() });
-                    dicts.Remove(new Dict { FileName = e.OldName, DictType = DictType.General.ToString() });
+                    dicts.Add(new Dict {
+                        FileName = e.Name,
+                        DictType = DictType.General.ToString(),
+                        FilePath = e.FullPath
+                    });
+                    dicts.Remove(new Dict {
+                        FileName = e.OldName,
+                        DictType = DictType.General.ToString(),
+                        FilePath = e.OldFullPath
+                    });
                 }
                 ));
         }
@@ -113,29 +145,6 @@ namespace LangTools
             languages = new ObservableCollection<Lingva>(storage.GetLanguages());
             languagesBox.ItemsSource = languages;
             languagesBox.SelectedIndex = 0;
-        }
-
-        private void FileExit_click(object sender, RoutedEventArgs e)
-        {
-            this.Close();
-        }
-
-        /// <summary>
-        /// Shows modal window to manage languages.
-        /// </summary>
-        private void LanguagesManage_click(object sender, RoutedEventArgs e)
-        {
-            LangWindow dialog = new LangWindow(languages);
-            // Ensure the alt+tab is working properly.
-            dialog.Owner = this;
-            dialog.ShowDialog();
-        }
-
-        private void HelpAbout_click(object sender, RoutedEventArgs e)
-        {
-            MessageBox.Show(string.Format("{0}: {1}",
-                App.Current.Properties["appName"],
-                CoreAssembly.Version), "About");
         }
 
         /// <summary>
@@ -245,7 +254,11 @@ namespace LangTools
                 // Add found dictionaries to dict collection.
                 foreach (string fName in projectSpecificDics)
                 {
-                    dicts.Add(new Dict { FileName = fName, DictType = DictType.Project.ToString() });
+                    dicts.Add(new Dict {
+                        FileName = fName,
+                        DictType = DictType.Project.ToString(),
+                        FilePath = Path.Combine(dictionariesDir, fName)
+                    });
                 }
                 // Start watching for new specific dict files.
                 specDictWatcher.Path = dictionariesDir;
@@ -260,7 +273,11 @@ namespace LangTools
                 // Combine both specific and general dictionaries
                 foreach (string fName in generalDics)
                 {
-                    dicts.Add(new Dict { FileName = fName, DictType = DictType.General.ToString() });
+                    dicts.Add(new Dict {
+                        FileName = fName,
+                        DictType = DictType.General.ToString(),
+                        FilePath = Path.Combine(generalDir, fName)
+                    });
                 }
                 // Start watching for general dictionaries.
                 genDictWatcher.Path = generalDir;
@@ -268,6 +285,48 @@ namespace LangTools
             }
             // Set the new binding
             dictsGrid.ItemsSource = dicts;
+        }
+
+        private void FileExit_click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
+
+        /// <summary>
+        /// Shows modal window to manage languages.
+        /// </summary>
+        private void LanguagesManage_click(object sender, RoutedEventArgs e)
+        {
+            LangWindow dialog = new LangWindow(languages);
+            // Ensure the alt+tab is working properly.
+            dialog.Owner = this;
+            dialog.ShowDialog();
+        }
+
+        private void HelpAbout_click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show(string.Format("{0}: {1}",
+                App.Current.Properties["appName"],
+                CoreAssembly.Version), "About");
+        }
+
+        private void OpenDict(object sender, RoutedEventArgs e)
+        {
+            // Cant cast directly, Selected item will be null if nothing is selected
+            Dict d = dictsGrid.SelectedItem as Dict;
+            if (d != null)
+            {
+                IOTools.OpenWithDefaul(d.FilePath);
+            }
+        }
+
+        private void DeleteDict(object sender, RoutedEventArgs e)
+        {
+            Dict d = dictsGrid.SelectedItem as Dict;
+            if (d != null)
+            {
+                IOTools.DeleteFile(d.FilePath);
+            }
         }
     }
 }

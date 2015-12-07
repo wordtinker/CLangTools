@@ -77,8 +77,8 @@
                 </StackPanel>
             </DockPanel>
             <StackPanel Grid.Column="1" Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="Open Dic" Style="{StaticResource BottomButton}"/>
-                <Button Content="Delete Dic" Style="{StaticResource BottomButton}"/>
+                <Button Content="Open Dic" Style="{StaticResource BottomButton}" Click="OpenDict"/>
+                <Button Content="Delete Dic" Style="{StaticResource BottomButton}" Click="DeleteDict"/>
             </StackPanel>
         </Grid>
     </DockPanel>

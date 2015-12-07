@@ -9,6 +9,7 @@ using System.Data.SQLite;
 using System.Data.Common;
 using System.Data;
 using System.Windows.Threading;
+using System.Windows;
 
 namespace LangTools
 {
@@ -26,7 +27,7 @@ namespace LangTools
             catch (Exception err)
             {
                 // Do nothing but log and return
-                Logger.Write(string.Format("Something is wrong during directory access: {0}", err.ToString()));
+                Logger.Write(string.Format("Something is wrong during directory access: {0}", err.Message));
                 foldersInDir = new List<string>();
                 return false;
             }
@@ -45,11 +46,41 @@ namespace LangTools
             catch (Exception err)
             {
                 // Do nothing but log and return
-                Logger.Write(string.Format("Something is wrong during directory access: {0}", err.ToString()));
+                Logger.Write(string.Format("Something is wrong during directory access: {0}", err.Message));
                 filesInDir = new List<string>();
                 return false;
             }
             return true;
+        }
+
+        internal static void OpenWithDefaul(string fileName)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(fileName);
+            }
+            catch (Exception)
+            {
+                MessageBox.Show(string.Format("Can't open {0}.", fileName));
+            }
+        }
+
+        internal static void DeleteFile(string fileName)
+        {
+            MessageBoxResult result = MessageBox.Show(
+                "Do you want to delete this file?", "Confirmation",
+                MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (result == MessageBoxResult.Yes)
+            {
+                try
+                {
+                    File.Delete(fileName);
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show(string.Format("Can't delete {0}.", fileName));
+                }
+            }
         }
     }
 
@@ -113,6 +144,7 @@ namespace LangTools
     {
         public string FileName { get; set; }
         public string DictType { get; set; }
+        public string FilePath { get;  set;}
 
         public override bool Equals(object obj)
         {
@@ -123,7 +155,7 @@ namespace LangTools
                 return false;
             }
 
-            return this.FileName == item.FileName && this.DictType == item.DictType;
+            return this.FilePath == item.FilePath;
         }
 
         public override int GetHashCode()
