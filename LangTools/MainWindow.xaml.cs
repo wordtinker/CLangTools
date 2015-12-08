@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -17,6 +18,76 @@ using System.Windows.Threading;
 
 namespace LangTools
 {
+    public class PercentageConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            int? divisor = (int?)values[0];
+            int? dividend = (int?)values[1];
+            if (divisor == null || divisor == 0 || dividend == null)
+            {
+                return null;
+            }
+
+            return string.Format("{0:F}", (double)dividend / divisor);
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            // Can't restore from percent.
+            throw new NotImplementedException();
+        }
+    }
+
+    public class OutLinkConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var fs = (FileStats)value;
+
+            string outName = Path.ChangeExtension(fs.FileName, ".html");
+            string outPath = Path.Combine(fs.Lingva.Folder, (string)App.Current.Properties["outputDir"],
+                                          fs.Project, outName);
+            if (File.Exists(outPath))
+            {
+                return outPath;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            // Can't restore from URI.
+            throw new NotImplementedException();
+        }
+    }
+
+    public class LinkNameConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            OutLinkConverter conv = new OutLinkConverter();
+            if (conv.Convert(value, targetType, parameter, culture) != null)
+            {
+                var fs = (FileStats)value;
+                return Path.ChangeExtension(fs.FileName, ".html");
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            // Can't restore from LinkName
+            throw new NotImplementedException();
+        }
+    }
+
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
@@ -26,9 +97,11 @@ namespace LangTools
         private ObservableCollection<Lingva> languages;
         private ObservableCollection<Dict> dicts;
         private ObservableCollection<string> projects;
-        FileSystemWatcher corpusWatcher;
-        FileSystemWatcher specDictWatcher;
-        FileSystemWatcher genDictWatcher;
+        private ObservableCollection<FileStats> files;
+        private FileSystemWatcher corpusWatcher;
+        private FileSystemWatcher specDictWatcher;
+        private FileSystemWatcher genDictWatcher;
+        private FileSystemWatcher filesWatcher;
 
         public MainWindow()
         {
@@ -47,6 +120,7 @@ namespace LangTools
             corpusWatcher.Filter = "*.*";
             // Remark : deleting of old projects from storage is postponed
             // until the next time LanguageChanged is called.
+            // TODO: Later.
 
             // Have to use Dispatcher to execute Action in the UI thread
             corpusWatcher.Created += (obj, e) => Dispatcher.BeginInvoke(
@@ -83,7 +157,7 @@ namespace LangTools
                 dicts.Remove(new Dict {
                     FileName = e.Name,
                     DictType = DictType.Project.ToString(),
-                    FilePath = e.FullPath
+                    FilePath = e.FullPath // TODO: Simplify, test
                 })));
 
             specDictWatcher.Renamed += (obj, e) => Dispatcher.BeginInvoke(
@@ -120,7 +194,7 @@ namespace LangTools
                 dicts.Remove(new Dict {
                     FileName = e.Name,
                     DictType = DictType.General.ToString(),
-                    FilePath = e.FullPath
+                    FilePath = e.FullPath // TODO: Simplify, test
                 })));
 
             genDictWatcher.Renamed += (obj, e) => Dispatcher.BeginInvoke(
@@ -135,6 +209,53 @@ namespace LangTools
                         FileName = e.OldName,
                         DictType = DictType.General.ToString(),
                         FilePath = e.OldFullPath
+                    });
+                }
+                ));
+
+            // Files Directory Watcher
+            // Remark : deleting of stats for deleted filese from storage is postponed
+            // until the next time ProjectChanged is called.
+            // TODO: Later
+            filesWatcher = new FileSystemWatcher();
+            filesWatcher.NotifyFilter = NotifyFilters.FileName;
+            filesWatcher.Filter = "*.txt";
+
+            filesWatcher.Created += (obj, e) => Dispatcher.BeginInvoke(
+                DispatcherPriority.Send, new Action(() =>
+                files.Add(new FileStats {
+                    FileName = e.Name,
+                    FilePath = e.FullPath,
+                    Lingva = (Lingva)languagesBox.SelectedItem,
+                    Project = (string)projectsBox.SelectedItem
+                })));
+
+            filesWatcher.Deleted += (obj, e) => Dispatcher.BeginInvoke(
+                DispatcherPriority.Send, new Action(() =>
+                files.Remove(new FileStats
+                {
+                    FileName = e.Name,
+                    FilePath = e.FullPath, // TODO: Simplify
+                    Lingva = (Lingva)languagesBox.SelectedItem,
+                    Project = (string)projectsBox.SelectedItem
+                })));
+
+            filesWatcher.Renamed += (obj, e) => Dispatcher.BeginInvoke(
+                DispatcherPriority.Send, new Action(() =>
+                {
+                    files.Add(new FileStats
+                    {
+                        FileName = e.Name,
+                        FilePath = e.FullPath,
+                        Lingva = (Lingva)languagesBox.SelectedItem,
+                        Project = (string)projectsBox.SelectedItem
+                    });
+                    files.Remove(new FileStats
+                    {
+                        FileName = e.OldName,
+                        FilePath = e.OldFullPath, // TODO: Simplify
+                        Lingva = (Lingva)languagesBox.SelectedItem,
+                        Project = (string)projectsBox.SelectedItem
                     });
                 }
                 ));
@@ -214,6 +335,11 @@ namespace LangTools
             // Stop watching both dict folders
             specDictWatcher.EnableRaisingEvents = false;
             genDictWatcher.EnableRaisingEvents = false;
+            // Remove old bindings from files
+            files = null;
+            filesGrid.ItemsSource = null;
+            // Stop watching files folder
+            filesWatcher.EnableRaisingEvents = false;
 
             // Ensure that one of the projects is always selected
             if (projectsBox.SelectedIndex == -1)
@@ -232,8 +358,59 @@ namespace LangTools
                 // TODO:
                 // Update list of words related to project
 
-                // TODO:
                 // Update list of project files
+                RedrawFiles();
+            }
+        }
+
+        /// <summary>
+        /// Redraws list of files for chosen project.
+        /// </summary>
+        private void RedrawFiles()
+        {
+            string projectName = (string)projectsBox.SelectedItem;
+            Lingva lang = (Lingva)languagesBox.SelectedItem;
+
+            // Get file names from project dir
+            string filesDir = Path.Combine(lang.Folder, (string)App.Current.Properties["corpusDir"], projectName);
+            List<string> fileNames;
+            if (!IOTools.ListFiles(filesDir, out fileNames))
+            {
+                // Can't reach the folder, no sense to proceed further.
+                return;
+            }
+
+            // Create FileStats object for every file name
+            IEnumerable<FileStats> inDir = fileNames.Select(fName => new FileStats
+            {
+                FileName = fName,
+                FilePath = Path.Combine(filesDir, fName),
+                Lingva = lang,
+                Project = projectName
+            });
+
+            // Get list of objects from DB
+            List<FileStats> inDB = storage.GetFilesStats(lang, projectName);
+
+            // Set the new binding.
+            // NB: inDB.Intersect will return elements from inDB. Need this order since they have more information.
+            files = new ObservableCollection<FileStats>(inDB.Intersect(inDir));
+            filesGrid.ItemsSource = files;
+            // Start watching files in the project.
+            filesWatcher.Path = filesDir;
+            filesWatcher.EnableRaisingEvents = true;
+
+            // Add files that we have in dir but no stats in DB
+            foreach (FileStats item in inDir.Except(inDB))
+            {
+                files.Add(item);
+            }
+
+            // Remove leftover stats from DB.
+            foreach (FileStats item in inDB.Except(inDir))
+            {
+                Logger.Write(string.Format("Going to remove {0} from DB", item.FileName), Severity.DEBUG);
+                storage.RemoveFileStats(item);
             }
         }
 

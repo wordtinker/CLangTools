@@ -94,7 +94,7 @@ namespace LangTools
             {
                 try
                 {
-                    File.Create(dbFileName);
+                    System.Data.SQLite.SQLiteConnection.CreateFile(dbFileName);
                 }
                 catch (Exception err)
                 {

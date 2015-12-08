@@ -21,7 +21,7 @@ namespace LangTools
             Logger.Write(string.Format("Going to check {0} for directories.", dir), Severity.DEBUG);
             try
             {
-                DirectoryInfo di = new DirectoryInfo(dir);
+                DirectoryInfo di = new DirectoryInfo(dir); // TODO
                 foldersInDir = new List<string>(di.GetDirectories().Select(d => d.Name));
             }
             catch (Exception err)
@@ -34,14 +34,14 @@ namespace LangTools
             return true;
         }
 
-        internal static bool ListFiles(string dir, out List<string> filesInDir)
+        internal static bool ListFiles(string dir, out List<string> filesInDir, string filter="*.txt")
         {
             // Get every project from corpus directory
             Logger.Write(string.Format("Going to check {0} for files.", dir), Severity.DEBUG);
             try
             {
-                DirectoryInfo di = new DirectoryInfo(dir);
-                filesInDir = new List<string>(di.GetFiles("*.txt").Select(d => d.Name));
+                DirectoryInfo di = new DirectoryInfo(dir); // TODO
+                filesInDir = new List<string>(di.GetFiles(filter).Select(d => d.Name));
             }
             catch (Exception err)
             {
@@ -134,6 +134,37 @@ namespace LangTools
         public string Folder { get; set; }
     }
 
+    class FileStats
+    {
+        public string FileName { get; set; }
+        public string FilePath { get; set; }
+        public Lingva Lingva { get; set; }
+        public string Project { get; set; }
+        public int? Size { get; set; }
+        public int? Known { get; set; }
+        public int? Maybe { get; set; }
+        public int? Unknown { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            FileStats item = obj as FileStats;
+
+            if (item == null)
+            {
+                return false;
+            }
+
+            return this.FileName == item.FileName &&
+                this.Lingva.Language == item.Lingva.Language &&
+                this.Project == item.Project; // TODO: Simplify
+        }
+
+        public override int GetHashCode()
+        {
+            return string.Format("{0}{1}{2}", FileName, Lingva.Language, Project).GetHashCode(); // TODO Simplify
+        }
+    }
+
     enum DictType
     {
         Project,
@@ -148,7 +179,7 @@ namespace LangTools
 
         public override bool Equals(object obj)
         {
-            var item = obj as Dict;
+            Dict item = obj as Dict;
 
             if (item == null)
             {
@@ -160,7 +191,7 @@ namespace LangTools
 
         public override int GetHashCode()
         {
-            return base.GetHashCode();
+            return FilePath.GetHashCode();
         }
     }
 
@@ -192,9 +223,9 @@ namespace LangTools
             }
 
             sql = "CREATE TABLE IF NOT EXISTS Files(" +
-                "name TEXT, lang TEXT, project TEXT, size INTEGER, known INTEGER," +
-                "pknown REAL, maybe INTEGER, pmaybe REAL, unknown INTEGER," +
-                "punknown REAL)";
+                "name TEXT, lang TEXT, project TEXT," +
+                " size INTEGER, known INTEGER," +
+                "maybe INTEGER, unknown INTEGER)";
             using (SQLiteCommand cmd = new SQLiteCommand(sql, dbConn))
             {
                 cmd.ExecuteNonQuery();
@@ -360,14 +391,14 @@ namespace LangTools
             // TODO: Test
         }
 
-        internal void RemoveProject(string language, string folder)
+        internal void RemoveProject(string language, string project)
         {
             SQLiteParameter langParam = new SQLiteParameter("@lang");
             langParam.Value = language;
             langParam.DbType = System.Data.DbType.String;
 
             SQLiteParameter projectParam = new SQLiteParameter("@project");
-            projectParam.Value = folder;
+            projectParam.Value = project;
             projectParam.DbType = System.Data.DbType.String;
 
             string sql = "DELETE FROM Files WHERE lang=@lang AND project=@project";
@@ -386,6 +417,80 @@ namespace LangTools
                 cmd.ExecuteNonQuery();
             }
             // TODO: Test
+            // TODO: Use Lingva as param
+        }
+
+        internal List<FileStats> GetFilesStats(Lingva language, string project)
+        {
+            SQLiteParameter langParam = new SQLiteParameter("@lang");
+            langParam.Value = language.Language;
+            langParam.DbType = System.Data.DbType.String;
+
+            SQLiteParameter projectParam = new SQLiteParameter("@project");
+            projectParam.Value = project;
+            projectParam.DbType = System.Data.DbType.String;
+
+            string sql = "SELECT name, size, known, maybe, unknown FROM Files " +
+                "WHERE lang=@lang AND project=@project";
+            List<FileStats> stats = new List<FileStats>();
+            using (SQLiteCommand cmd = new SQLiteCommand(sql, dbConn))
+            {
+                cmd.Parameters.Add(langParam);
+                cmd.Parameters.Add(projectParam);
+                SQLiteDataReader dr = cmd.ExecuteReader();
+                while (dr.Read())
+                {
+                    //stats.Add(new FileStats {
+                    //    FileName = (string)dr[0],
+                    //    FilePath = "", // TODO!!!!
+                    //    Language = language.Language,
+                    //    Project = project,
+                    //    Size = (int)dr[1],
+                    //    //Known = (int)dr[2],
+                    //    //Maybe = (int)dr[3],
+                    //    //Unknown = (int)dr[4]
+                    //OutLink = IOTools.FindOutputFile(language.Folder, project, (string)dr[0])
+                //});
+                stats.Add(new FileStats // TODO: Stub
+                    {
+                        FileName = "1.txt",
+                        FilePath = "", // TODO!!!!
+                        Lingva = language,
+                        Project = "prj1",
+                        Size = 520,
+                        Known = 400,
+                        Maybe = 80,
+                        Unknown = 40
+                });
+                    stats.Add(new FileStats // TODO: Stub
+                    {
+                        FileName = "2.txt",
+                        FilePath = "", // TODO!!!!
+                        Lingva = language,
+                        Project = "prj1",
+                        Size = 1033,
+                        Known = 433,
+                        Maybe = 100,
+                        Unknown = 500
+                    });
+                }
+                dr.Close();
+            }
+            return stats;
+            // TODO: Test
+        }
+
+        /// <summary>
+        /// Removes the stats of the given file from the DB.
+        /// </summary>
+        /// <param name="file"></param>
+        internal void RemoveFileStats(FileStats file)
+        {
+            // TODO
+            string sql = "DELETE FROM Files WHERE name=@name AND lang=@lang AND project=@project"; // TODO: Later ,move to FullPAth
+
+
+            sql = "DELETE FROM Words WHERE lang=@lang AND project=@project and file=@project"; // TODO: Later, move to FullPAth
         }
     }
 }
