@@ -84,9 +84,6 @@ namespace LangTools
             }
 
             // TODO: Test different platforms
-            // Store Directory info in global settings
-            // TODO: do we use it?
-            Current.Properties["dir"] = dir;
 
             // Create DB file
             string dbFileName = Path.Combine(appDir, "lt.db");

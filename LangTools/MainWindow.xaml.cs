@@ -226,10 +226,7 @@ namespace LangTools
                 DispatcherPriority.Send, new Action(() =>
                 files.Remove(new FileStats
                 {
-                    FileName = e.Name,
-                    FilePath = e.FullPath, // TODO: Simplify
-                    Lingva = (Lingva)languagesBox.SelectedItem,
-                    Project = (string)projectsBox.SelectedItem
+                    FilePath = e.FullPath
                 })));
 
             filesWatcher.Renamed += (obj, e) => Dispatcher.BeginInvoke(
@@ -244,10 +241,7 @@ namespace LangTools
                     });
                     files.Remove(new FileStats
                     {
-                        FileName = e.OldName,
-                        FilePath = e.OldFullPath, // TODO: Simplify
-                        Lingva = (Lingva)languagesBox.SelectedItem,
-                        Project = (string)projectsBox.SelectedItem
+                        FilePath = e.OldFullPath
                     });
                 }
                 ));

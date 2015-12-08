@@ -152,14 +152,12 @@ namespace LangTools
                 return false;
             }
 
-            return this.FileName == item.FileName &&
-                this.Lingva.Language == item.Lingva.Language &&
-                this.Project == item.Project; // TODO: Simplify
+            return this.FilePath == item.FilePath;
         }
 
         public override int GetHashCode()
         {
-            return string.Format("{0}{1}{2}", FileName, Lingva.Language, Project).GetHashCode(); // TODO Simplify
+            return FilePath.GetHashCode();
         }
     }
 
@@ -221,7 +219,7 @@ namespace LangTools
             }
 
             sql = "CREATE TABLE IF NOT EXISTS Files(" +
-                "name TEXT, lang TEXT, project TEXT," +
+                "name TEXT, path TEXT PRIMARY KEY, lang TEXT, project TEXT," +
                 " size INTEGER, known INTEGER," +
                 "maybe INTEGER, unknown INTEGER)";
             using (SQLiteCommand cmd = new SQLiteCommand(sql, dbConn))
@@ -323,7 +321,7 @@ namespace LangTools
                 SQLiteDataReader dr = cmd.ExecuteReader();
                 while (dr.Read())
                 {
-                    langs.Add(new Lingva { Language = (string)dr[0], Folder = (string)dr[1] });
+                    langs.Add(new Lingva { Language = dr.GetString(0), Folder = dr.GetString(1)});
                 }
                 dr.Close();
             }
@@ -360,6 +358,7 @@ namespace LangTools
                 cmd.Parameters.Add(param);
                 cmd.ExecuteNonQuery();
             }
+            //TODO: test
         }
 
         /// <summary>
@@ -381,7 +380,7 @@ namespace LangTools
                 SQLiteDataReader dr = cmd.ExecuteReader();
                 while (dr.Read())
                 {
-                    projects.Add((string)dr[0]);
+                    projects.Add(dr.GetString(0));
                 }
                 dr.Close();
             }
@@ -428,7 +427,7 @@ namespace LangTools
             projectParam.Value = project;
             projectParam.DbType = System.Data.DbType.String;
 
-            string sql = "SELECT name, size, known, maybe, unknown FROM Files " +
+            string sql = "SELECT name, path, size, known, maybe, unknown FROM Files " +
                 "WHERE lang=@lang AND project=@project";
             List<FileStats> stats = new List<FileStats>();
             using (SQLiteCommand cmd = new SQLiteCommand(sql, dbConn))
@@ -438,44 +437,21 @@ namespace LangTools
                 SQLiteDataReader dr = cmd.ExecuteReader();
                 while (dr.Read())
                 {
-                    //stats.Add(new FileStats {
-                    //    FileName = (string)dr[0],
-                    //    FilePath = "", // TODO!!!!
-                    //    Language = language.Language,
-                    //    Project = project,
-                    //    Size = (int)dr[1],
-                    //    //Known = (int)dr[2],
-                    //    //Maybe = (int)dr[3],
-                    //    //Unknown = (int)dr[4]
-                    //OutLink = IOTools.FindOutputFile(language.Folder, project, (string)dr[0])
-                //});
-                stats.Add(new FileStats // TODO: Stub
+                    stats.Add(new FileStats
                     {
-                        FileName = "1.txt",
-                        FilePath = "", // TODO!!!!
+                        FileName = dr.GetString(0),
+                        FilePath = dr.GetString(1),
                         Lingva = language,
-                        Project = "prj1",
-                        Size = 520,
-                        Known = 400,
-                        Maybe = 80,
-                        Unknown = 40
-                });
-                    stats.Add(new FileStats // TODO: Stub
-                    {
-                        FileName = "2.txt",
-                        FilePath = "", // TODO!!!!
-                        Lingva = language,
-                        Project = "prj1",
-                        Size = 1033,
-                        Known = 433,
-                        Maybe = 100,
-                        Unknown = 500
+                        Project = project,
+                        Size = dr.GetInt32(2),
+                        Known = dr.GetInt32(3),
+                        Maybe = dr.GetInt32(4),
+                        Unknown = dr.GetInt32(5)
                     });
                 }
                 dr.Close();
             }
             return stats;
-            // TODO: Test
         }
 
         /// <summary>
@@ -485,10 +461,11 @@ namespace LangTools
         internal void RemoveFileStats(FileStats file)
         {
             // TODO
-            string sql = "DELETE FROM Files WHERE name=@name AND lang=@lang AND project=@project"; // TODO: Later ,move to FullPAth
+            string sql = "DELETE FROM Files WHERE path=@path";
 
 
-            sql = "DELETE FROM Words WHERE lang=@lang AND project=@project and file=@project"; // TODO: Later, move to FullPAth
+            sql = "DELETE FROM Words WHERE lang=@lang AND project=@project and file=@project";
+            // TODO: Test
         }
     }
 }
