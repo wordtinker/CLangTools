@@ -155,9 +155,7 @@ namespace LangTools
             specDictWatcher.Deleted += (obj, e) => Dispatcher.BeginInvoke(
                 DispatcherPriority.Send, new Action(() =>
                 dicts.Remove(new Dict {
-                    FileName = e.Name,
-                    DictType = DictType.Project.ToString(),
-                    FilePath = e.FullPath // TODO: Simplify, test
+                    FilePath = e.FullPath
                 })));
 
             specDictWatcher.Renamed += (obj, e) => Dispatcher.BeginInvoke(
@@ -169,8 +167,6 @@ namespace LangTools
                         FilePath = e.FullPath
                     });
                     dicts.Remove(new Dict {
-                        FileName = e.OldName,
-                        DictType = DictType.Project.ToString(),
                         FilePath = e.OldFullPath
                     });
                 }
@@ -192,9 +188,7 @@ namespace LangTools
             genDictWatcher.Deleted += (obj, e) => Dispatcher.BeginInvoke(
                 DispatcherPriority.Send, new Action(() =>
                 dicts.Remove(new Dict {
-                    FileName = e.Name,
-                    DictType = DictType.General.ToString(),
-                    FilePath = e.FullPath // TODO: Simplify, test
+                    FilePath = e.FullPath
                 })));
 
             genDictWatcher.Renamed += (obj, e) => Dispatcher.BeginInvoke(
@@ -206,8 +200,6 @@ namespace LangTools
                         FilePath = e.FullPath
                     });
                     dicts.Remove(new Dict {
-                        FileName = e.OldName,
-                        DictType = DictType.General.ToString(),
                         FilePath = e.OldFullPath
                     });
                 }
@@ -298,7 +290,7 @@ namespace LangTools
                 Lingva selectedLang = (Lingva)languagesBox.SelectedItem;
                 string corpusDir = Path.Combine(selectedLang.Folder, (string)App.Current.Properties["corpusDir"]);
                 // Load the list of projects into projects combobox
-                List<string> projectsInDir;
+                IEnumerable<string> projectsInDir;
                 if (IOTools.ListDirectories(corpusDir, out projectsInDir))
                 {
                     // Add new binding
@@ -314,7 +306,7 @@ namespace LangTools
             }
         }
 
-        private void RemoveOldProjects(List<string> projectsInDir, Lingva selectedLang)
+        private void RemoveOldProjects(IEnumerable<string> projectsInDir, Lingva selectedLang)
         {
             // Get known projects from DB
             List<string> projectsInDB = storage.GetProjects(selectedLang);
@@ -373,7 +365,7 @@ namespace LangTools
 
             // Get file names from project dir
             string filesDir = Path.Combine(lang.Folder, (string)App.Current.Properties["corpusDir"], projectName);
-            List<string> fileNames;
+            IEnumerable<string> fileNames;
             if (!IOTools.ListFiles(filesDir, out fileNames))
             {
                 // Can't reach the folder, no sense to proceed further.
@@ -425,7 +417,7 @@ namespace LangTools
             // Get custom project dictionaries
             string dictionariesDir = Path.Combine(lang.Folder, (string)App.Current.Properties["dicDir"], projectName);
             dicts = new ObservableCollection<Dict>();
-            List<string> projectSpecificDics;
+            IEnumerable<string> projectSpecificDics;
             if (IOTools.ListFiles(dictionariesDir, out projectSpecificDics))
             {
                 // Add found dictionaries to dict collection.
@@ -444,7 +436,7 @@ namespace LangTools
 
             // Get general project dictionaries.
             string generalDir = Path.Combine(lang.Folder, (string)App.Current.Properties["dicDir"]);
-            List<string> generalDics;
+            IEnumerable<string> generalDics;
             if (IOTools.ListFiles(generalDir, out generalDics))
             {
                 // Combine both specific and general dictionaries

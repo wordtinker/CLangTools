@@ -15,14 +15,13 @@ namespace LangTools
 {
     static class IOTools
     {
-        internal static bool ListDirectories(string dir, out List<string> foldersInDir)
+        internal static bool ListDirectories(string dir, out IEnumerable<string> foldersInDir)
         {
             // Get every directory from directory
             Logger.Write(string.Format("Going to check {0} for directories.", dir), Severity.DEBUG);
             try
             {
-                DirectoryInfo di = new DirectoryInfo(dir); // TODO
-                foldersInDir = new List<string>(di.GetDirectories().Select(d => d.Name));
+                foldersInDir = Directory.GetDirectories(dir).Select(Path.GetFileName);
             }
             catch (Exception err)
             {
@@ -34,14 +33,13 @@ namespace LangTools
             return true;
         }
 
-        internal static bool ListFiles(string dir, out List<string> filesInDir, string filter="*.txt")
+        internal static bool ListFiles(string dir, out IEnumerable<string> filesInDir, string filter="*.txt")
         {
-            // Get every project from corpus directory
+            // Get every file name from directory
             Logger.Write(string.Format("Going to check {0} for files.", dir), Severity.DEBUG);
             try
             {
-                DirectoryInfo di = new DirectoryInfo(dir); // TODO
-                filesInDir = new List<string>(di.GetFiles(filter).Select(d => d.Name));
+                filesInDir = Directory.GetFiles(dir, filter).Select(Path.GetFileName);
             }
             catch (Exception err)
             {
