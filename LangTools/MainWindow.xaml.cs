@@ -88,6 +88,45 @@ namespace LangTools
         }
     }
 
+    public class SumConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            int sum = 0;
+            foreach (FileStats item in (ItemCollection)value)
+            {
+                sum += item.Size.GetValueOrDefault();
+            }
+            
+            return sum;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class TotalPercentConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            int unknown = 0;
+            int total = 0;
+            foreach (FileStats item in (ItemCollection)value)
+            {
+                total += item.Size.GetValueOrDefault();
+                unknown += item.Unknown.GetValueOrDefault();
+            }
+            return string.Format("{0:F}", total == 0 ? 0 : (double)unknown / total);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>

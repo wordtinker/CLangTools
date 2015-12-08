@@ -14,6 +14,8 @@
         <local:PercentageConverter x:Key="Percent"/>
         <local:OutLinkConverter x:Key="OutLink"/>
         <local:LinkNameConverter x:Key="LinkName"/>
+        <local:SumConverter x:Key="Sum"/>
+        <local:TotalPercentConverter x:Key="TotalPercent"/>
     </Window.Resources>
     <DockPanel Margin="5">
         <Menu x:Name="menu" DockPanel.Dock="Top" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,0,0,5">
@@ -45,6 +47,49 @@
                 <TextBox x:Name="filterBox" Width="120"/>
             </StackPanel>
         </DockPanel>
+        <StatusBar DockPanel.Dock="Bottom">
+            <StatusBar.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="250" />
+                        </Grid.ColumnDefinitions>
+                    </Grid>
+                </ItemsPanelTemplate>
+            </StatusBar.ItemsPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Grid.Column="0">
+                <StatusBarItem>
+                    <TextBlock Text="Number of files:" />
+                </StatusBarItem>
+                <StatusBarItem>
+                    <TextBlock Text="{Binding ElementName=filesGrid, Path=Items.Count}" />
+                </StatusBarItem>
+                <StatusBarItem Width="Auto">
+                    <TextBlock Text="Words:" />
+                </StatusBarItem>
+                <StatusBarItem Width="Auto">
+                    <TextBlock Text="{Binding ElementName=filesGrid, Path=Items, Converter={StaticResource Sum}}" />
+                </StatusBarItem>
+                <StatusBarItem Width="Auto">
+                    <TextBlock Text="Unknown %:" />
+                </StatusBarItem>
+                <StatusBarItem Width="Auto">
+                    <TextBlock Text="{Binding ElementName=filesGrid, Path=Items, Converter={StaticResource TotalPercent}}" />
+                </StatusBarItem>
+            </StackPanel>
+            <Separator Grid.Column="1" />
+            <StatusBarItem Grid.Column="2">
+                 <!--Visual separator-->
+            </StatusBarItem>
+            <Separator Grid.Column="3" />
+            <StatusBarItem Grid.Column="4">
+                <ProgressBar Value="50" Width="250" Height="16" />
+            </StatusBarItem>
+        </StatusBar>
         <Grid DockPanel.Dock="Bottom">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
