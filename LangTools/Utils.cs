@@ -197,7 +197,7 @@ namespace LangTools
 
         internal Storage(string dbFile)
         {
-            string connString = string.Format("Data Source={0};Version=3;", dbFile);
+            string connString = string.Format("Data Source={0};Version=3;foreign keys=True;", dbFile);
             dbConn = new SQLiteConnection(connString);
             dbConn.Open();
             InitializeTables();
@@ -212,14 +212,15 @@ namespace LangTools
 
         private void InitializeTables()
         {
-            string sql = "CREATE TABLE IF NOT EXISTS Languages(lang TEXT, directory TEXT)";
+            string sql = "CREATE TABLE IF NOT EXISTS Languages(lang TEXT PRIMARY KEY, directory TEXT)";
             using (SQLiteCommand cmd = new SQLiteCommand(sql, dbConn))
             {
                 cmd.ExecuteNonQuery();
             }
 
-            sql = "CREATE TABLE IF NOT EXISTS Files(" +
-                "name TEXT, path TEXT PRIMARY KEY, lang TEXT, project TEXT," +
+            sql = @"CREATE TABLE IF NOT EXISTS Files(" +
+                "name TEXT, path TEXT PRIMARY KEY, " +
+                "lang TEXT REFERENCES Languages(lang) ON DELETE CASCADE, project TEXT," +
                 " size INTEGER, known INTEGER," +
                 "maybe INTEGER, unknown INTEGER)";
             using (SQLiteCommand cmd = new SQLiteCommand(sql, dbConn))
@@ -228,7 +229,7 @@ namespace LangTools
             }
 
             sql = "CREATE TABLE IF NOT EXISTS Words(" +
-                "word TEXT, lang TEXT, project TEXT, file TEXT, quantity INTEGER)";
+                "word TEXT, file TEXT REFERENCES Files(path) ON DELETE CASCADE, quantity INTEGER)";
             using (SQLiteCommand cmd = new SQLiteCommand(sql, dbConn))
             {
                 cmd.ExecuteNonQuery();
@@ -344,21 +345,6 @@ namespace LangTools
                 cmd.Parameters.Add(param);
                 cmd.ExecuteNonQuery();
             }
-
-            sql = "DELETE FROM Files WHERE lang=@lang";
-            using (SQLiteCommand cmd = new SQLiteCommand(sql, dbConn))
-            {
-                cmd.Parameters.Add(param);
-                cmd.ExecuteNonQuery();
-            }
-
-            sql = "DELETE FROM Words WHERE lang=@lang";
-            using (SQLiteCommand cmd = new SQLiteCommand(sql, dbConn))
-            {
-                cmd.Parameters.Add(param);
-                cmd.ExecuteNonQuery();
-            }
-            //TODO: test
         }
 
         /// <summary>
@@ -385,13 +371,12 @@ namespace LangTools
                 dr.Close();
             }
             return projects;
-            // TODO: Test
         }
 
-        internal void RemoveProject(string language, string project)
+        internal void RemoveProject(Lingva language, string project)
         {
             SQLiteParameter langParam = new SQLiteParameter("@lang");
-            langParam.Value = language;
+            langParam.Value = language.Language;
             langParam.DbType = System.Data.DbType.String;
 
             SQLiteParameter projectParam = new SQLiteParameter("@project");
@@ -405,16 +390,6 @@ namespace LangTools
                 cmd.Parameters.Add(projectParam);
                 cmd.ExecuteNonQuery();
             }
-
-            sql = "DELETE FROM Words WHERE lang=@lang AND project=@project";
-            using (SQLiteCommand cmd = new SQLiteCommand(sql, dbConn))
-            {
-                cmd.Parameters.Add(langParam);
-                cmd.Parameters.Add(projectParam);
-                cmd.ExecuteNonQuery();
-            }
-            // TODO: Test
-            // TODO: Use Lingva as param
         }
 
         internal List<FileStats> GetFilesStats(Lingva language, string project)
@@ -460,12 +435,15 @@ namespace LangTools
         /// <param name="file"></param>
         internal void RemoveFileStats(FileStats file)
         {
-            // TODO
+            SQLiteParameter path = new SQLiteParameter("@path");
+            path.Value = file.FilePath;
+            path.DbType = System.Data.DbType.String;
             string sql = "DELETE FROM Files WHERE path=@path";
-
-
-            sql = "DELETE FROM Words WHERE lang=@lang AND project=@project and file=@project";
-            // TODO: Test
+            using (SQLiteCommand cmd = new SQLiteCommand(sql, dbConn))
+            {
+                cmd.Parameters.Add(path);
+                cmd.ExecuteNonQuery();
+            }
         }
     }
 }

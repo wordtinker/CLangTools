@@ -348,7 +348,7 @@ namespace LangTools
             {
                 // Remove leftover projects
                 Logger.Write(string.Format("Deleting project:{0} - {1}", selectedLang.Language, leftover), Severity.DEBUG);
-                storage.RemoveProject(selectedLang.Language, leftover);
+                storage.RemoveProject(selectedLang, leftover);
             }
         }
 
