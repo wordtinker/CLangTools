@@ -40,7 +40,7 @@
                 <ComboBox x:Name="projectsBox" Width="250"
                           ItemsSource="{Binding}"
                           SelectionChanged="ProjectChanged"/>
-                <Button Content=">" Width="75" Margin="5,0"/>
+                <Button x:Name="runBtn" Content=">" Width="75" Margin="5,0" Click="RunProject"/>
             </StackPanel>
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
                 <Label Content="Filter"/>
@@ -83,11 +83,11 @@
             </StackPanel>
             <Separator Grid.Column="1" />
             <StatusBarItem Grid.Column="2">
-                 <!--Visual separator-->
+                <TextBlock x:Name="log"/>
             </StatusBarItem>
             <Separator Grid.Column="3" />
             <StatusBarItem Grid.Column="4">
-                <ProgressBar Value="50" Width="250" Height="16" />
+                <ProgressBar x:Name="projectProgress" Value="100" Width="250" Height="16" />
             </StatusBarItem>
         </StatusBar>
         <Grid DockPanel.Dock="Bottom">

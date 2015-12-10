@@ -489,6 +489,95 @@ namespace LangTools
             dictsGrid.ItemsSource = dicts;
         }
 
+        /// <summary>
+        /// Manages project analysis and shows progress dialog.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private async void RunProject(object sender, RoutedEventArgs e)
+        {
+            Lingva lang = languagesBox.SelectedItem as Lingva;
+            string project = projectsBox.SelectedItem as string;
+
+            if (project == null || lang == null || files.Count == 0 || dicts.Count == 0)
+            {
+                // Nothing to analyze here
+                return;
+            }
+
+            Logger.Write("Project analysis has started.", Severity.DEBUG);
+
+            // Disable controls
+            languagesBox.IsEnabled = false;
+            projectsBox.IsEnabled = false;
+            runBtn.IsEnabled = false;
+
+            // Ensure directory structure, dict and output priject specific dirs
+            // are misssing on first run.
+            EnsureDirectoryStructure(lang.Folder, project);// TODO: Do we ever need this? File.Create could do that?
+
+            // Get the old project stats
+            int oldKnownQty = files.Sum(x => x.Known.GetValueOrDefault());
+            int oldMaybeQty = files.Sum(x => x.Maybe.GetValueOrDefault());
+
+            // Create object that handle analysis.
+            Analyzer worker = new Analyzer(lang.Language);
+            worker.AddFiles(files.Select(f => f.FilePath));
+            worker.AddDictionaries(dicts.Select(d => d.FilePath));
+
+            var progress = new Progress<RunProgress>(ev =>
+            {
+                // Update the visual progress of the analysis.
+                projectProgress.Value = ev.Percent;
+                log.Text = ev.Message;
+
+                if (ev.Data != null)
+                {
+                    // TODO
+                    // See if object changed
+                }
+            });
+
+            await Task.Run(() => worker.Run(progress));
+
+            // Get the new project stats
+            int newKnownQty = files.Sum(x => x.Known.GetValueOrDefault());
+            int newMaybeQty = files.Sum(x => x.Maybe.GetValueOrDefault());
+
+            // Update the visual progress.
+            projectProgress.Value = 100;
+            log.Text = string.Format(
+                "Analysis is finished. Known: {0:+#;-#;0}, Maybe {1:+#;-#;0}", // Force sign, no sign for zero
+                newKnownQty - oldKnownQty, newMaybeQty - oldMaybeQty);
+            // Refresh datagrid so it will show new stats.
+            filesGrid.Items.Refresh();
+            // Enaable controls
+            languagesBox.IsEnabled = true;
+            projectsBox.IsEnabled = true;
+            runBtn.IsEnabled = true;
+        }
+
+        private void EnsureDirectoryStructure(string langPath, string project)
+        {
+            string projectDictDir =
+                Path.Combine(langPath, (string)App.Current.Properties["dicDir"], project);
+            string projectOutDir =
+                Path.Combine(langPath, (string)App.Current.Properties["outputDir"], project);
+
+            // Create subfolders
+            try
+            {
+                Directory.CreateDirectory(projectDictDir);
+                Directory.CreateDirectory(projectOutDir);
+            }
+            catch (Exception e)
+            {
+                // Not a critical error, could be fixed later.
+                string msg = string.Format("Something is wrong during subfolder creation: {0}", e.ToString());
+                Logger.Write(msg);
+            }
+        }
+
         private void FileExit_click(object sender, RoutedEventArgs e)
         {
             this.Close();

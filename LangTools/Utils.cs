@@ -51,6 +51,21 @@ namespace LangTools
             return true;
         }
 
+        internal static bool ReadAllText(string filePath, out string content)
+        {
+            try
+            {
+                content = File.ReadAllText(filePath, Encoding.UTF8);
+                return true;
+            }
+            catch (Exception e)
+            {
+                Logger.Write(string.Format("Can't read file: {0}", e.Message));
+                content = null;
+                return false;
+            }
+        }
+
         internal static void OpenWithDefaul(string fileName)
         {
             try
