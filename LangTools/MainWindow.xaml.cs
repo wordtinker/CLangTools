@@ -533,8 +533,14 @@ namespace LangTools
 
                 if (ev.Data != null)
                 {
-                    // TODO
-                    // See if object changed
+                    // compare old and new stats
+                    FileStats newStats = ev.Data.Stats;
+                    FileStats oldStats = files[files.IndexOf(newStats)];
+                    if (oldStats.Update(newStats))
+                    {
+                        // TODO Update DB
+                        // TODO Write to File
+                    }
                 }
             });
 

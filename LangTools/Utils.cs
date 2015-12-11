@@ -174,6 +174,21 @@ namespace LangTools
         {
             return FilePath.GetHashCode();
         }
+
+        public bool Update(FileStats other)
+        {
+            if (this.Size != other.Size || this.Known != other.Known ||
+                this.Maybe != other.Maybe || this.Unknown != other.Unknown)
+            {
+                this.Size = other.Size;
+                this.Known = other.Known;
+                this.Maybe = other.Maybe;
+                this.Unknown = other.Unknown;
+                return true;
+            }
+
+            return false;
+        }
     }
 
     enum DictType
