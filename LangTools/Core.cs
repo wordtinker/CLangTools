@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Web.Script.Serialization;
 
 namespace LangTools
 {
@@ -140,9 +141,15 @@ namespace LangTools
             EXPANDED
         }
 
-        // TODO patterns and prefixes variable
+        private class Plugin
+        {
+            public Dictionary<string, Dictionary<string, string[]>> Patterns { get; set; }
+            public string[] Prefixes { get; set; }
+        }
 
+        private Plugin plug;
         // The dictionary to hold known words
+        // TODO: Later, could 2 sets be faster and simplier?
         private Dictionary<string, Source> dict = new Dictionary<string, Source>();
         // Current text counters
         private Dictionary<string, int> unknownWords;
@@ -152,7 +159,8 @@ namespace LangTools
 
         internal void LoadPlugin(string jsonPlugin)
         {
-            // TODO
+            var serializer = new JavaScriptSerializer();
+            plug = serializer.Deserialize<Plugin>(jsonPlugin);
         }
 
         internal void LoadDictionary(string content)
@@ -169,7 +177,44 @@ namespace LangTools
 
         internal void ExpandDictionary()
         {
-            // TODO
+            // TODO : Compare output files. 342 != 339, 505 != 498
+            // Sort pattern levels
+            List<string> Layers = plug.Patterns.Keys.ToList();
+            Layers.Sort(); // we are sorting strings 
+                           // !!! dictionary deeper than "9" will bring errors
+
+            // Create sets to hold the expanding dictionary in the process
+            HashSet<string> prevState = new HashSet<string>(dict.Keys);
+            HashSet<string> nextState;
+            // Transform the word from initial form through layers
+            // of transformations.
+            foreach (string layer in Layers)
+            {
+                nextState = new HashSet<string>();
+                foreach (var pattern in plug.Patterns[layer])
+                {
+                    Regex rx = new Regex(pattern.Key);
+                    foreach (string word in prevState)
+                    {
+                        // Mutate the word into new form
+                        foreach (string replacemnt in pattern.Value)
+                        {
+                            string newWord = rx.Replace(word, replacemnt);
+                            nextState.Add(newWord);
+                        }
+                    }
+                }
+                prevState = nextState;
+            }
+
+            // Copy the final state into dictionary
+            foreach (string word in prevState)
+            {
+                if (!dict.ContainsKey(word))
+                {
+                    dict.Add(word, Source.EXPANDED);
+                }
+            }
         }
 
         internal FileData AnalyzeText(string source, string content)
@@ -228,7 +273,14 @@ namespace LangTools
 
         private bool IsExpandable(string word)
         {
-            // TODO
+            foreach (string prefix in plug.Prefixes)
+            {
+                if (word.StartsWith(prefix) &&
+                    dict.Keys.Contains(word.Substring(prefix.Length)))
+                {
+                    return true;
+                }
+            }
             return false;
         }
 
