@@ -1,0 +1,10 @@
+body {
+	font-family:sans-serif;
+	line-height: 1.5;
+}
+
+span.UNKNOWN {
+	background-color: white;
+	font-weight: normal;
+	font-style: normal;
+	border-bottom: 3px solid blue;}

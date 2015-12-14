@@ -512,9 +512,9 @@ namespace LangTools
             projectsBox.IsEnabled = false;
             runBtn.IsEnabled = false;
 
-            // Ensure directory structure, dict and output priject specific dirs
+            // Ensure directory structure, dict and output project specific dirs
             // are misssing on first run.
-            EnsureDirectoryStructure(lang.Folder, project);// TODO: Do we ever need this? File.Create could do that?
+            EnsureDirectoryStructure(lang.Folder, project);
 
             // Get the old project stats
             int oldKnownQty = files.Sum(x => x.Known.GetValueOrDefault());
@@ -524,6 +524,9 @@ namespace LangTools
             Analyzer worker = new Analyzer(lang.Language);
             worker.AddFiles(files.Select(f => f.FilePath));
             worker.AddDictionaries(dicts.Select(d => d.FilePath));
+
+            // Create printer that will print analysis
+            Printer printer = new Printer(lang.Language);
 
             var progress = new Progress<RunProgress>(ev =>
             {
@@ -538,8 +541,10 @@ namespace LangTools
                     FileStats oldStats = files[files.IndexOf(newStats)];
                     if (oldStats.Update(newStats))
                     {
+                        // Produce new output page
+                        printer.Print(oldStats.FileName, oldStats.Project,
+                            lang.Folder, ev.Data.Tokens); 
                         // TODO Update DB
-                        // TODO Write to File
                     }
                 }
             });
