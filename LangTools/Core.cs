@@ -104,8 +104,8 @@ namespace LangTools
 
         private void StartAnalysis()
         {
-            int percentValue = 30;
-            int step = 70 / filePathes.Count();
+            double percentValue = 30;
+            double step = 70.0 / filePathes.Count();
             foreach (string path in filePathes)
             {
                 Logger.Write(string.Format("Analyzing the file: {0}", path), Severity.DEBUG);
@@ -115,7 +115,7 @@ namespace LangTools
                 {
                     FileData fData =  lexer.AnalyzeText(path, content);
                     progress.Report(new RunProgress(
-                        percentValue,
+                        Convert.ToInt32(percentValue),
                         string.Format("{0} ready!", Path.GetFileName(path)),
                         fData
                         ));
@@ -123,7 +123,7 @@ namespace LangTools
                 else
                 {
                     progress.Report(new RunProgress(
-                        percentValue,
+                        Convert.ToInt32(percentValue),
                         string.Format("Error in {0}!", Path.GetFileName(path))
                         ));
                 }
@@ -199,8 +199,11 @@ namespace LangTools
                         // Mutate the word into new form
                         foreach (string replacemnt in pattern.Value)
                         {
-                            string newWord = rx.Replace(word, replacemnt);
-                            nextState.Add(newWord);
+                            if (rx.IsMatch(word))
+                            {
+                                string newWord = rx.Replace(word, replacemnt);
+                                nextState.Add(newWord);
+                            }
                         }
                     }
                 }
