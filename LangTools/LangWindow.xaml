@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LangTools"
         mc:Ignorable="d"
-        Title="Languages" Height="400" Width="400">
+        Title="Languages" Height="400" Width="400" ResizeMode="NoResize">
     <DockPanel>
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Bottom">
             <Button Content="Add Language" Width="110" Margin="0,0,10,0" Click="AddBtn_click"/>

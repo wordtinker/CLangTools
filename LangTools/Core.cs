@@ -116,7 +116,7 @@ namespace LangTools
                     FileData fData =  lexer.AnalyzeText(path, content);
                     progress.Report(new RunProgress(
                         Convert.ToInt32(percentValue),
-                        string.Format("{0} ready!", Path.GetFileName(path)),
+                        string.Format("{0} is ready!", Path.GetFileName(path)),
                         fData
                         ));
                 }

@@ -39,55 +39,6 @@ namespace LangTools
         }
     }
 
-    public class OutLinkConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            var fs = (FileStats)value;
-
-            string outName = Path.ChangeExtension(fs.FileName, ".html");
-            string outPath = Path.Combine(fs.Lingva.Folder, (string)App.Current.Properties["outputDir"],
-                                          fs.Project, outName);
-            if (File.Exists(outPath))
-            {
-                return new Uri(outPath);
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            // Can't restore from URI.
-            throw new NotImplementedException();
-        }
-    }
-
-    public class LinkNameConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            OutLinkConverter conv = new OutLinkConverter();
-            if (conv.Convert(value, targetType, parameter, culture) != null)
-            {
-                var fs = (FileStats)value;
-                return Path.ChangeExtension(fs.FileName, ".html");
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            // Can't restore from LinkName
-            throw new NotImplementedException();
-        }
-    }
-
     public class SumConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -612,23 +563,64 @@ namespace LangTools
                 CoreAssembly.Version), "About");
         }
 
-        private void OpenDict(object sender, RoutedEventArgs e)
+        private void FilesRow_DoubleClick(object sender, MouseButtonEventArgs e)
         {
-            // Cant cast directly, Selected item will be null if nothing is selected
-            Dict d = dictsGrid.SelectedItem as Dict;
-            if (d != null)
-            {
-                IOTools.OpenWithDefaul(d.FilePath);
-            }
+            DataGridRow row = (DataGridRow) sender;
+            FileStats fs = (FileStats) row.DataContext;
+            IOTools.OpenWithDefault(fs.OutPath);
         }
 
-        private void DeleteDict(object sender, RoutedEventArgs e)
+        private void FilesContextMenu_ClickOpenFile(object sender, RoutedEventArgs e)
+        {
+            FileStats stats = filesGrid.SelectedItem as FileStats;
+            if (stats == null) return;
+            IOTools.OpenWithDefault(stats.FilePath);
+        }
+
+        private void FilesContextMenu_ClickOpenOutput(object sender, RoutedEventArgs e)
+        {
+            FileStats stats = filesGrid.SelectedItem as FileStats;
+            if (stats == null) return;
+            IOTools.OpenWithDefault(stats.OutPath);
+        }
+
+        private void FilesContextMenu_ClickDeleteFile(object sender, RoutedEventArgs e)
+        {
+            FileStats stats = filesGrid.SelectedItem as FileStats;
+            if (stats == null) return;
+            // GridView will be updated after FileWatcher catches the event
+            IOTools.DeleteFile(stats.FilePath);
+            // Delete output file together
+            IOTools.DeleteFile(stats.OutPath);
+        }
+
+        private void FilesContextMenu_ClickDeleteOutput(object sender, RoutedEventArgs e)
+        {
+            FileStats stats = filesGrid.SelectedItem as FileStats;
+            if (stats == null) return;
+            IOTools.DeleteFile(stats.OutPath);
+        }
+
+        private void DictsRow_DoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            DataGridRow row = (DataGridRow) sender;
+            Dict d = (Dict) row.DataContext;
+            IOTools.OpenWithDefault(d.FilePath);
+        }
+
+        private void DictContextMenu_ClickOpen(object sender, RoutedEventArgs e)
         {
             Dict d = dictsGrid.SelectedItem as Dict;
-            if (d != null)
-            {
-                IOTools.DeleteFile(d.FilePath);
-            }
+            if (d == null) return;
+            IOTools.OpenWithDefault(d.FilePath);
+        }
+
+        private void DictContextMenu_ClickDelete(object sender, RoutedEventArgs e)
+        {
+            Dict d = dictsGrid.SelectedItem as Dict;
+            if (d == null) return;
+            // GridView will be updated after FileWatcher catches the event
+            IOTools.DeleteFile(d.FilePath);
         }
     }
 }

@@ -81,7 +81,7 @@ namespace LangTools
             }
         }
 
-        internal static void OpenWithDefaul(string fileName)
+        internal static void OpenWithDefault(string fileName)
         {
             try
             {
@@ -96,8 +96,10 @@ namespace LangTools
         internal static void DeleteFile(string fileName)
         {
             MessageBoxResult result = MessageBox.Show(
-                "Do you want to delete this file?", "Confirmation",
-                MessageBoxButton.YesNo, MessageBoxImage.Question);
+                string.Format("Do you want to delete\n {0} ?", fileName),
+                "Confirmation",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
             if (result == MessageBoxResult.Yes)
             {
                 try
@@ -172,6 +174,20 @@ namespace LangTools
         public int? Known { get; set; }
         public int? Maybe { get; set; }
         public int? Unknown { get; set; }
+        public string OutPath
+        {
+            // TODO check creation moment FileName, Lingva, Project
+            get
+            {
+                string outName = Path.ChangeExtension(FileName, ".html");
+                string outPath = Path.Combine(
+                    Lingva.Folder,
+                    (string)App.Current.Properties["outputDir"],
+                    Project,
+                    outName);
+                return outPath;
+            }
+        }
 
         public override bool Equals(object obj)
         {

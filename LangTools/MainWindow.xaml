@@ -12,8 +12,6 @@
             <Setter Property="Margin" Value="5,0" />
         </Style>
         <local:PercentageConverter x:Key="Percent"/>
-        <local:OutLinkConverter x:Key="OutLink"/>
-        <local:LinkNameConverter x:Key="LinkName"/>
         <local:SumConverter x:Key="Sum"/>
         <local:TotalPercentConverter x:Key="TotalPercent"/>
     </Window.Resources>
@@ -94,13 +92,26 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <DataGrid x:Name="filesGrid" Grid.Column="0" Grid.RowSpan="2"
                       ItemsSource="{Binding}"
                       AutoGenerateColumns="False"
                       SelectionMode="Single"
                       IsReadOnly="True">
+                <DataGrid.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Open File" Click="FilesContextMenu_ClickOpenFile"/>
+                        <MenuItem Header="Open Output File" Click="FilesContextMenu_ClickOpenOutput"/>
+                        <Separator/>
+                        <MenuItem Header="Delete File" Click="FilesContextMenu_ClickDeleteFile"/>
+                        <MenuItem Header="Delete Output File" Click="FilesContextMenu_ClickDeleteOutput"/>
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
+                <DataGrid.Resources>
+                    <Style TargetType="DataGridRow">
+                        <EventSetter Event="MouseDoubleClick" Handler="FilesRow_DoubleClick"/>
+                    </Style>
+                </DataGrid.Resources>
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="File Name" Width="Auto" Binding="{Binding FileName}"/>
                     <DataGridTextColumn Header="Size" Width="*" Binding="{Binding Size}"/>
@@ -131,14 +142,6 @@
                             </MultiBinding>
                         </DataGridTextColumn.Binding>
                     </DataGridTextColumn>
-                    <DataGridHyperlinkColumn Header="Output" Width="Auto">
-                        <DataGridHyperlinkColumn.Binding>
-                            <Binding Converter="{StaticResource OutLink}"/>
-                        </DataGridHyperlinkColumn.Binding>
-                        <DataGridHyperlinkColumn.ContentBinding>
-                            <Binding Converter="{StaticResource LinkName}"/>
-                        </DataGridHyperlinkColumn.ContentBinding>
-                    </DataGridHyperlinkColumn>
                 </DataGrid.Columns>
             </DataGrid>
             <DataGrid x:Name="wordsGrid" Grid.Column="1" Grid.Row="0">
@@ -149,25 +152,22 @@
                       AutoGenerateColumns="False"
                       SelectionMode="Single"
                       IsReadOnly="True">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="File Name" Width="*" Binding="{Binding FileName}"/>
-                        <DataGridTextColumn Header="Type" Width="Auto" Binding="{Binding DictType}"/>
-                    </DataGrid.Columns>
-                </DataGrid>
-            <DockPanel Grid.Column="0" Grid.Row="2">
-                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
-                    <Button Content="Open File" Style="{StaticResource BottomButton}"/>
-                    <Button Content="Delete File" Style="{StaticResource BottomButton}"/>
-                </StackPanel>
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button Content="Open Markup" Style="{StaticResource BottomButton}"/>
-                    <Button Content="Delete Markup" Style="{StaticResource BottomButton}"/>
-                </StackPanel>
-            </DockPanel>
-            <StackPanel Grid.Column="1" Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="Open Dic" Style="{StaticResource BottomButton}" Click="OpenDict"/>
-                <Button Content="Delete Dic" Style="{StaticResource BottomButton}" Click="DeleteDict"/>
-            </StackPanel>
+                <DataGrid.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Open Dictionary" Click="DictContextMenu_ClickOpen"/>
+                        <MenuItem Header="Delete Dictionary" Click="DictContextMenu_ClickDelete"/>
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
+                <DataGrid.Resources>
+                    <Style TargetType="DataGridRow">
+                        <EventSetter Event="MouseDoubleClick" Handler="DictsRow_DoubleClick"/>
+                    </Style>
+                </DataGrid.Resources>
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="File Name" Width="*" Binding="{Binding FileName}"/>
+                    <DataGridTextColumn Header="Type" Width="Auto" Binding="{Binding DictType}"/>
+                </DataGrid.Columns>
+            </DataGrid>
         </Grid>
     </DockPanel>
 </Window>
