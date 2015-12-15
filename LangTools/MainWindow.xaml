@@ -42,10 +42,6 @@
                           SelectionChanged="ProjectChanged"/>
                 <Button x:Name="runBtn" Content=">" Width="75" Margin="5,0" Click="RunProject"/>
             </StackPanel>
-            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
-                <Label Content="Filter"/>
-                <TextBox x:Name="filterBox" Width="120"/>
-            </StackPanel>
         </DockPanel>
         <StatusBar DockPanel.Dock="Bottom">
             <StatusBar.ItemsPanel>

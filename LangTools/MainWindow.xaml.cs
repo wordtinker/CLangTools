@@ -50,7 +50,7 @@ namespace LangTools
                                           fs.Project, outName);
             if (File.Exists(outPath))
             {
-                return outPath;
+                return new Uri(outPath);
             }
             else
             {

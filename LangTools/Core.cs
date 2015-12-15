@@ -149,7 +149,6 @@ namespace LangTools
 
         private Plugin plug;
         // The dictionary to hold known words
-        // TODO: Later, could 2 sets be faster and simplier?
         private Dictionary<string, Source> dict = new Dictionary<string, Source>();
         // Current text counters
         private Dictionary<string, int> unknownWords;
@@ -177,7 +176,6 @@ namespace LangTools
 
         internal void ExpandDictionary()
         {
-            // TODO : Compare output files. 342 != 339, 505 != 498
             // Sort pattern levels
             List<string> Layers = plug.Patterns.Keys.ToList();
             Layers.Sort(); // we are sorting strings 
@@ -228,7 +226,6 @@ namespace LangTools
             knownWordsCount = 0;
             maybeWordsCount = 0;
 
-            content = content.ToLower();
             List<Token> tokenList = new List<Token>(new Tokenizer(content));
             tokenList.ForEach(AnalyzeToken);
 
@@ -247,10 +244,11 @@ namespace LangTools
         {
             if (token.Type == TokenType.WORD)
             {
+                string word = token.Word.ToLower();
                 textSizeCount += 1;
-                if (dict.ContainsKey(token.Word))
+                if (dict.ContainsKey(word))
                 {
-                    if (dict[token.Word] == Source.ORIGINAL)
+                    if (dict[word] == Source.ORIGINAL)
                     {
                         knownWordsCount += 1;
                         token.Know = Klass.KNOWN;
@@ -261,14 +259,14 @@ namespace LangTools
                         token.Know = Klass.MAYBE;
                     }
                 }
-                else if (IsExpandable(token.Word))
+                else if (IsExpandable(word))
                 {
                     maybeWordsCount += 1;
                     token.Know = Klass.MAYBE;
                 }
                 else
                 {
-                    AddToUnkownDict(token.Word);
+                    AddToUnkownDict(word);
                     token.Know = Klass.UNKNOWN;
                 }
             }
@@ -278,7 +276,7 @@ namespace LangTools
         {
             foreach (string prefix in plug.Prefixes)
             {
-                if (word.StartsWith(prefix) &&
+                if (word.StartsWith(prefix, StringComparison.Ordinal) &&
                     dict.Keys.Contains(word.Substring(prefix.Length)))
                 {
                     return true;
@@ -289,7 +287,6 @@ namespace LangTools
 
         private void AddToUnkownDict(string word)
         {
-            // TODO: Later, faster with try/catch ? save on contains?
             if (unknownWords.ContainsKey(word))
             {
                 unknownWords[word] += 1;
@@ -306,6 +303,14 @@ namespace LangTools
     /// </summary>
     internal class Tokenizer :IEnumerable<Token>
     {
+        // Prepare regex statement
+        // Any word including words with hebrew specific chars
+        // \p{L}+      any character of: UTF macro 'Letter' 1 or more times
+        // (
+        //   [״'׳"]     \' or ׳(0x5f3) symbol exactly once
+        //   \p{L}+      any character of: UTF macro 'Letter' 1 or more times
+        // )?       # optionally
+        private static Regex rx = new Regex(@"\p{L}+([״'׳""]\p{L}+)?", RegexOptions.Compiled);
         private string content;
 
         internal Tokenizer(string content)
@@ -322,15 +327,7 @@ namespace LangTools
         {
             // Calculate string bounds
             int position = 0;
-            // Prepare regex statement
-            // Any word including words with hebrew specific chars
-            // \p{L}+      any character of: UTF macro 'Letter' 1 or more times
-            // (
-            //   [״'׳"]     \' or ׳(0x5f3) symbol exactly once
-            //   \p{L}+      any character of: UTF macro 'Letter' 1 or more times
-            // )?       # optionally
-            Regex rx = new Regex(@"\p{L}+([״'׳""]\p{L}+)?");
-            // TODO: Later. Would it be faster with compile and/or static?
+
             while (position < content.Length)
             {
                 Match match = rx.Match(content, position);
