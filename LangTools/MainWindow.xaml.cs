@@ -478,7 +478,8 @@ namespace LangTools
 
             // Create printer that will print analysis
             Printer printer = new Printer(lang.Language);
-
+            // Callback function to react on new Filestats
+            // during analysis
             var progress = new Progress<RunProgress>(ev =>
             {
                 // Update the visual progress of the analysis.
@@ -494,13 +495,20 @@ namespace LangTools
                     {
                         // Produce new output page
                         printer.Print(oldStats.FileName, oldStats.Project,
-                            lang.Folder, ev.Data.Tokens); 
-                        // TODO Update DB
+                            lang.Folder, ev.Data.Tokens);
+                        // Update stats in the DB
+                        storage.UpdateStats(oldStats);
+                        // Add new word list to DB
+                        storage.UpdateWords(oldStats.FilePath, ev.Data.UnknownWords);
                     }
                 }
             });
 
             await Task.Run(() => worker.Run(progress));
+
+            // Commit changes to DB
+            storage.CommitStats();
+            storage.CommitWords();
 
             // Get the new project stats
             int newKnownQty = files.Sum(x => x.Known.GetValueOrDefault());

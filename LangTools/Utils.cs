@@ -254,10 +254,17 @@ namespace LangTools
 
     class Storage
     {
+        // DB connection
         private SQLiteConnection dbConn;
+        // temp variables to store data for transactions
+        private Dictionary<string, Dictionary<string, int>> wordList;
+        private List<FileStats> statList;
 
         internal Storage(string dbFile)
         {
+            wordList = new Dictionary<string, Dictionary<string, int>>();
+            statList = new List<FileStats>();
+
             string connString = string.Format("Data Source={0};Version=3;foreign keys=True;", dbFile);
             dbConn = new SQLiteConnection(connString);
             dbConn.Open();
@@ -364,7 +371,7 @@ namespace LangTools
                 param.DbType = System.Data.DbType.String;
                 cmd.Parameters.Add(param);
 
-                cmd.ExecuteNonQuery(); 
+                cmd.ExecuteNonQuery();
             }
             return new Lingva { Language = language, Folder = directory };
         }
@@ -383,7 +390,7 @@ namespace LangTools
                 SQLiteDataReader dr = cmd.ExecuteReader();
                 while (dr.Read())
                 {
-                    langs.Add(new Lingva { Language = dr.GetString(0), Folder = dr.GetString(1)});
+                    langs.Add(new Lingva { Language = dr.GetString(0), Folder = dr.GetString(1) });
                 }
                 dr.Close();
             }
@@ -505,6 +512,124 @@ namespace LangTools
                 cmd.Parameters.Add(path);
                 cmd.ExecuteNonQuery();
             }
+        }
+
+        internal void UpdateStats(FileStats stats)
+        {
+            statList.Add(stats);
+        }
+
+        internal void CommitStats()
+        {
+            string sql = "INSERT OR REPLACE INTO Files " +
+            //    //"(name, path, lang, project, size, known, maybe, unknown) " +
+                "VALUES(@name, @path, @lang, @project, @size, @known, @maybe, @unknown)";
+
+            using (SQLiteCommand cmd = new SQLiteCommand(sql, dbConn))
+            {
+                using (SQLiteTransaction transaction = dbConn.BeginTransaction())
+                {
+                    foreach (FileStats stats in statList)
+                    {
+                        //        cmd.CommandText = "INSERT OR REPLACE INTO Files " +
+                        ////"(name, path, lang, project, size, known, maybe, unknown) " +
+                        //"VALUES(@name, @path, @lang, @project, @size, @known, @maybe, @unknown)";
+
+                        SQLiteParameter param = new SQLiteParameter("@name");
+                        param.Value = stats.FileName;
+                        param.DbType = System.Data.DbType.String;
+                        cmd.Parameters.Add(param);
+
+                        param = new SQLiteParameter("@path");
+                        param.Value = stats.FilePath;
+                        param.DbType = System.Data.DbType.String;
+                        cmd.Parameters.Add(param);
+
+                        param = new SQLiteParameter("@lang");
+                        param.Value = stats.Lingva.Language;
+                        param.DbType = System.Data.DbType.String;
+                        cmd.Parameters.Add(param);
+
+                        param = new SQLiteParameter("@project");
+                        param.Value = stats.Project;
+                        param.DbType = System.Data.DbType.String;
+                        cmd.Parameters.Add(param);
+
+                        param = new SQLiteParameter("@size");
+                        param.Value = stats.Size.GetValueOrDefault();
+                        cmd.Parameters.Add(param);
+
+                        param = new SQLiteParameter("@known");
+                        param.Value = stats.Known.GetValueOrDefault();
+                        cmd.Parameters.Add(param);
+
+                        param = new SQLiteParameter("@maybe");
+                        param.Value = stats.Maybe.GetValueOrDefault();
+                        cmd.Parameters.Add(param);
+
+                        param = new SQLiteParameter("@unknown");
+                        param.Value = stats.Unknown.GetValueOrDefault();
+                        cmd.Parameters.Add(param);
+
+                        cmd.ExecuteNonQuery();
+                    }
+                    transaction.Commit();
+                }
+            }
+            statList.Clear();
+            GC.Collect();
+        }
+
+        /// <summary>
+        /// Updates the word list for the given project. Delayed insert is used.
+        /// CommitWords must be called afterward to apply changes.
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="unknownWords"></param>
+        internal void UpdateWords(string filePath, Dictionary<string, int> unknownWords)
+        {
+            wordList.Add(filePath, unknownWords);
+        }
+
+        internal void CommitWords()
+        {
+            using (var cmd = new SQLiteCommand(dbConn))
+            {
+                using (SQLiteTransaction transaction = dbConn.BeginTransaction())
+                {
+                    foreach (string filePath in wordList.Keys)
+                    {
+                        SQLiteParameter pathParam = new SQLiteParameter("@file");
+                        pathParam.Value = filePath;
+                        pathParam.DbType = System.Data.DbType.String;
+                        // Delete all words from previous analysis
+                        cmd.CommandText = "DELETE FROM Words WHERE file=@file";
+                        cmd.Parameters.Add(pathParam);
+                        cmd.ExecuteNonQuery();
+
+                        string command = "INSERT INTO Words VALUES(@word, @file, @quantity)";
+                        foreach (var item in wordList[filePath])
+                        {
+                            cmd.CommandText = command;
+                            cmd.Parameters.Add(pathParam);
+
+                            SQLiteParameter param = new SQLiteParameter("@word");
+                            param.Value = item.Key;
+                            pathParam.DbType = System.Data.DbType.String;
+                            cmd.Parameters.Add(param);
+
+                            param = new SQLiteParameter("@quantity");
+                            param.Value = item.Value;
+                            cmd.Parameters.Add(param);
+
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+                    transaction.Commit();
+                }
+            }
+            wordList.Clear();
+            GC.Collect();
         }
     }
 
