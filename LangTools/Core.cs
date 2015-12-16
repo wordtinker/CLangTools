@@ -229,9 +229,10 @@ namespace LangTools
             List<Token> tokenList = new List<Token>(new Tokenizer(content));
             tokenList.ForEach(AnalyzeToken);
 
-            FileStats stats = new FileStats
+            // Create stub FileStats object
+            // TODO: Decouple FileStats
+            FileStats stats = new FileStats(null, source, null, null)
             {
-                FilePath = source,
                 Size = textSizeCount,
                 Known = knownWordsCount,
                 Maybe = maybeWordsCount,

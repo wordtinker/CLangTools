@@ -205,34 +205,37 @@ namespace LangTools
 
             filesWatcher.Created += (obj, e) => Dispatcher.BeginInvoke(
                 DispatcherPriority.Send, new Action(() =>
-                files.Add(new FileStats {
-                    FileName = e.Name,
-                    FilePath = e.FullPath,
-                    Lingva = (Lingva)languagesBox.SelectedItem,
-                    Project = (string)projectsBox.SelectedItem
-                })));
+                files.Add(new FileStats(
+                    e.Name,
+                    e.FullPath,
+                    (Lingva)languagesBox.SelectedItem,
+                    (string)projectsBox.SelectedItem
+                    ))));
 
             filesWatcher.Deleted += (obj, e) => Dispatcher.BeginInvoke(
                 DispatcherPriority.Send, new Action(() =>
-                files.Remove(new FileStats
-                {
-                    FilePath = e.FullPath
-                })));
+                files.Remove(new FileStats(
+                    e.Name,
+                    e.FullPath,
+                    (Lingva)languagesBox.SelectedItem,
+                    (string)projectsBox.SelectedItem
+                    ))));
 
             filesWatcher.Renamed += (obj, e) => Dispatcher.BeginInvoke(
                 DispatcherPriority.Send, new Action(() =>
                 {
-                    files.Add(new FileStats
-                    {
-                        FileName = e.Name,
-                        FilePath = e.FullPath,
-                        Lingva = (Lingva)languagesBox.SelectedItem,
-                        Project = (string)projectsBox.SelectedItem
-                    });
-                    files.Remove(new FileStats
-                    {
-                        FilePath = e.OldFullPath
-                    });
+                    files.Add(new FileStats(
+                        e.Name,
+                        e.FullPath,
+                        (Lingva)languagesBox.SelectedItem,
+                        (string)projectsBox.SelectedItem
+                        ));
+                    files.Remove(new FileStats(
+                        e.OldName,
+                        e.OldFullPath,
+                        (Lingva)languagesBox.SelectedItem,
+                        (string)projectsBox.SelectedItem
+                        ));
                 }
                 ));
         }
@@ -357,13 +360,12 @@ namespace LangTools
             }
 
             // Create FileStats object for every file name
-            IEnumerable<FileStats> inDir = fileNames.Select(fName => new FileStats
-            {
-                FileName = fName,
-                FilePath = Path.Combine(filesDir, fName),
-                Lingva = lang,
-                Project = projectName
-            });
+            IEnumerable<FileStats> inDir = fileNames.Select(fName => new FileStats(
+                fName,
+                Path.Combine(filesDir, fName),
+                lang,
+                projectName
+                ));
 
             // Get list of objects from DB
             List<FileStats> inDB = storage.GetFilesStats(lang, projectName);

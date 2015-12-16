@@ -166,17 +166,23 @@ namespace LangTools
 
     class FileStats
     {
-        public string FileName { get; set; }
-        public string FilePath { get; set; }
-        public Lingva Lingva { get; set; }
-        public string Project { get; set; }
+        private string fileName;
+        private string filePath;
+        private Lingva lingva;
+        private string project;
+
+        // Properties
+        public string FileName{ get { return fileName; } }
+        public string FilePath { get { return filePath; } }
+        public Lingva Lingva { get { return lingva; } }
+        public string Project { get { return project; } }
+
         public int? Size { get; set; }
         public int? Known { get; set; }
         public int? Maybe { get; set; }
         public int? Unknown { get; set; }
         public string OutPath
         {
-            // TODO check creation moment FileName, Lingva, Project
             get
             {
                 string outName = Path.ChangeExtension(FileName, ".html");
@@ -187,6 +193,14 @@ namespace LangTools
                     outName);
                 return outPath;
             }
+        }
+
+        public FileStats(string fileName, string filePath, Lingva language, string project)
+        {
+            this.fileName = fileName;
+            this.filePath = filePath;
+            this.lingva = language;
+            this.project = project;
         }
 
         public override bool Equals(object obj)
@@ -480,12 +494,11 @@ namespace LangTools
                 SQLiteDataReader dr = cmd.ExecuteReader();
                 while (dr.Read())
                 {
-                    stats.Add(new FileStats
+                    stats.Add(new FileStats(
+                        dr.GetString(0),
+                        dr.GetString(1),
+                        language, project)
                     {
-                        FileName = dr.GetString(0),
-                        FilePath = dr.GetString(1),
-                        Lingva = language,
-                        Project = project,
                         Size = dr.GetInt32(2),
                         Known = dr.GetInt32(3),
                         Maybe = dr.GetInt32(4),
