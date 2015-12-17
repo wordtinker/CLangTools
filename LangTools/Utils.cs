@@ -11,6 +11,7 @@ using System.Data;
 using System.Windows.Threading;
 using System.Windows;
 using System.Collections;
+using System.ComponentModel;
 
 namespace LangTools
 {
@@ -164,12 +165,17 @@ namespace LangTools
         public string Folder { get; set; }
     }
 
-    class FileStats
+    class FileStats : INotifyPropertyChanged
     {
         private string fileName;
         private string filePath;
         private Lingva lingva;
         private string project;
+
+        private int? size;
+        private int? known;
+        private int? maybe;
+        private int? unknown;
 
         // Properties
         public string FileName{ get { return fileName; } }
@@ -177,10 +183,53 @@ namespace LangTools
         public Lingva Lingva { get { return lingva; } }
         public string Project { get { return project; } }
 
-        public int? Size { get; set; }
-        public int? Known { get; set; }
-        public int? Maybe { get; set; }
-        public int? Unknown { get; set; }
+        public int? Size
+        {
+            get { return this.size; }
+            set
+            {
+                if (value != this.size)
+                {
+                    this.size = value;
+                    OnPropertyChanged("Size");
+                }
+            }
+        }
+        public int? Known
+        {
+            get { return this.known; }
+            set
+            {
+                if (value != this.known)
+                {
+                    this.known = value;
+                    OnPropertyChanged("Known");
+                }
+            }
+        }
+        public int? Maybe
+        {
+            get { return this.maybe; }
+            set
+            {
+                if (value != this.maybe)
+                {
+                    this.maybe = value;
+                    OnPropertyChanged("Maybe");
+                }
+            }
+        }
+        public int? Unknown {
+            get { return this.unknown; }
+            set
+            {
+                if (value != this.unknown)
+                {
+                    this.unknown = value;
+                    OnPropertyChanged("Unknown");
+                }
+            }
+        }
         public string OutPath
         {
             get
@@ -233,6 +282,18 @@ namespace LangTools
             }
 
             return false;
+        }
+
+        // Implement INotifyPropertyChanged
+        public event PropertyChangedEventHandler PropertyChanged;
+        // Create the OnPropertyChanged method to raise the event
+        protected void OnPropertyChanged(string name)
+        {
+            // If we have handler
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(name));
+            }
         }
     }
 
@@ -535,7 +596,6 @@ namespace LangTools
         internal void CommitStats()
         {
             string sql = "INSERT OR REPLACE INTO Files " +
-            //    //"(name, path, lang, project, size, known, maybe, unknown) " +
                 "VALUES(@name, @path, @lang, @project, @size, @known, @maybe, @unknown)";
 
             using (SQLiteCommand cmd = new SQLiteCommand(sql, dbConn))
@@ -544,10 +604,6 @@ namespace LangTools
                 {
                     foreach (FileStats stats in statList)
                     {
-                        //        cmd.CommandText = "INSERT OR REPLACE INTO Files " +
-                        ////"(name, path, lang, project, size, known, maybe, unknown) " +
-                        //"VALUES(@name, @path, @lang, @project, @size, @known, @maybe, @unknown)";
-
                         SQLiteParameter param = new SQLiteParameter("@name");
                         param.Value = stats.FileName;
                         param.DbType = System.Data.DbType.String;

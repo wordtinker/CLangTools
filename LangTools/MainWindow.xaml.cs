@@ -521,8 +521,6 @@ namespace LangTools
             log.Text = string.Format(
                 "Analysis is finished. Known: {0:+#;-#;0}, Maybe {1:+#;-#;0}", // Force sign, no sign for zero
                 newKnownQty - oldKnownQty, newMaybeQty - oldMaybeQty);
-            // Refresh datagrid so it will show new stats.
-            filesGrid.Items.Refresh();
             // Enaable controls
             languagesBox.IsEnabled = true;
             projectsBox.IsEnabled = true;
