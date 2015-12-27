@@ -1,52 +1,37 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 
-namespace LangTools
+namespace LangTools.Core
 {
-    internal class RunProgress
-    {
-        internal readonly int Percent;
-        internal readonly string Message;
-        internal readonly FileData Data;
-
-        internal RunProgress(int progressValue, string message = "", FileData data = null)
-        {
-            this.Percent = progressValue;
-            this.Message = message;
-            this.Data = data;
-        }
-    }
-
-
-    internal class FileData
+    internal class Report
     {
         internal readonly List<Token> Tokens;
         internal readonly Dictionary<string, int> UnknownWords;
-        internal readonly FileStats Stats;
+        internal readonly int Size;
+        internal readonly int Known;
+        internal readonly int Maybe;
 
-        internal FileData(List<Token> tokens,
-            Dictionary<string, int> unknownWords, FileStats stats)
+        internal Report(List<Token> tokens,
+            Dictionary<string, int> unknownWords,
+            int size, int known, int maybe)
         {
             this.Tokens = tokens;
             this.UnknownWords = unknownWords;
-            this.Stats = stats;
+            this.Size = size;
+            this.Known = known;
+            this.Maybe = maybe;
         }
     }
 
     internal class Analyzer
     {
-        private IProgress<RunProgress> progress;
-        private IEnumerable<string> filePathes;
         private IEnumerable<string> dictPathes;
-        private Lexer lexer;
+        private Lexer lexer = new Lexer();
         private string language;
 
         internal Analyzer(string language)
@@ -54,29 +39,27 @@ namespace LangTools
             this.language = language;
         }
 
-        internal void AddFiles(IEnumerable<string> fNames)
-        {
-            this.filePathes = fNames;
-        }
-
         internal void AddDictionaries(IEnumerable<string> dNames)
         {
             this.dictPathes = dNames;
         }
 
-        internal void Run(IProgress<RunProgress> progress)
+        internal Report AnalyzeFile(string path)
         {
-            this.progress = progress;
-
-            progress.Report(new RunProgress(0));
-            PrepareDictionaries();
-            StartAnalysis();
+            Logger.Write(string.Format("Analyzing the file: {0}", path), Severity.DEBUG);
+            string content;
+            if (IOTools.ReadAllText(path, out content))
+            {
+                return lexer.AnalyzeText(content);
+            }
+            else
+            {
+                return null;
+            }
         }
 
-        private void PrepareDictionaries()
+        internal void PrepareDictionaries()
         {
-            //Build lexer for current project
-            lexer = new Lexer();
             // Load plugin into lexer if we have plugin
             string jsonPlugin;
             string pluginPath = Path.Combine(Directory.GetCurrentDirectory(), "plugins", language);
@@ -85,7 +68,6 @@ namespace LangTools
             {
                 lexer.LoadPlugin(jsonPlugin);
             }
-            progress.Report(new RunProgress(10));
             // Load dictionaries
             foreach (string path in dictPathes)
             {
@@ -96,42 +78,10 @@ namespace LangTools
                     lexer.LoadDictionary(content);
                 }
             }
-            progress.Report(new RunProgress(20));
             // Expand dictionary
             lexer.ExpandDictionary();
-            progress.Report(new RunProgress(30, "Dictionaries are ready."));
-        }
-
-        private void StartAnalysis()
-        {
-            double percentValue = 30;
-            double step = 70.0 / filePathes.Count();
-            foreach (string path in filePathes)
-            {
-                Logger.Write(string.Format("Analyzing the file: {0}", path), Severity.DEBUG);
-                percentValue += step;
-                string content;
-                if (IOTools.ReadAllText(path, out content))
-                {
-                    FileData fData =  lexer.AnalyzeText(path, content);
-                    progress.Report(new RunProgress(
-                        Convert.ToInt32(percentValue),
-                        string.Format("{0} is ready!", Path.GetFileName(path)),
-                        fData
-                        ));
-                }
-                else
-                {
-                    progress.Report(new RunProgress(
-                        Convert.ToInt32(percentValue),
-                        string.Format("Error in {0}!", Path.GetFileName(path))
-                        ));
-                }
-            }
         }
     }
-
-    
 
     internal class Lexer
     {
@@ -218,7 +168,7 @@ namespace LangTools
             }
         }
 
-        internal FileData AnalyzeText(string source, string content)
+        internal Report AnalyzeText(string content)
         {
             // Reset text counters
             unknownWords = new Dictionary<string, int>();
@@ -228,17 +178,10 @@ namespace LangTools
 
             List<Token> tokenList = new List<Token>(new Tokenizer(content));
             tokenList.ForEach(AnalyzeToken);
-
-            // Create stub FileStats object
-            // TODO: Decouple FileStats
-            FileStats stats = new FileStats(null, source, null, null)
-            {
-                Size = textSizeCount,
-                Known = knownWordsCount,
-                Maybe = maybeWordsCount,
-                Unknown = textSizeCount - knownWordsCount - maybeWordsCount
-            };
-            return new FileData(tokenList, unknownWords, stats);
+            
+            return new Report(tokenList, unknownWords,
+                textSizeCount, knownWordsCount, maybeWordsCount
+                );
         }
 
         private void AnalyzeToken(Token token)

@@ -3,42 +3,38 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:LangTools"
+        xmlns:localVM="clr-namespace:LangTools.ViewModels"
+        xmlns:localV="clr-namespace:LangTools"
         mc:Ignorable="d"
         Height="600" Width="800" MinWidth="800" MinHeight="600">
-    <Window.Resources>
-        <Style TargetType="Button" x:Key="BottomButton">
-            <Setter Property="Width" Value="85"/>
-            <Setter Property="Margin" Value="5,0" />
-        </Style>
-        <local:PercentageConverter x:Key="Percent"/>
-        <local:SumConverter x:Key="Sum"/>
-        <local:TotalPercentConverter x:Key="TotalPercent"/>
-    </Window.Resources>
+    <Window.DataContext>
+        <localVM:MainViewModel/>
+    </Window.DataContext>
     <DockPanel Margin="5">
         <Menu x:Name="menu" DockPanel.Dock="Top" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,0,0,5">
             <MenuItem Header="_File">
-                <MenuItem Header="_Exit" Click="FileExit_click"/>
+                <MenuItem Header="_Exit" Command="{Binding ExitApp}"/>
             </MenuItem>
             <MenuItem Header="_Languages">
                 <MenuItem Header="_Manage" Click="LanguagesManage_click"/>
             </MenuItem>
             <MenuItem Header="_Help">
-                <MenuItem Header="About" Click="HelpAbout_click"/>
+                <MenuItem Header="About" Command="{Binding ShowHelp}"/>
             </MenuItem>
         </Menu>
         <DockPanel DockPanel.Dock="Top" VerticalAlignment="Top">
             <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
                 <Label Content="Language"/>
                 <ComboBox x:Name="languagesBox" Width="120"
-                          ItemsSource="{Binding}"
+                          ItemsSource="{Binding Languages}"
                           DisplayMemberPath="Language"
                           SelectionChanged="LanguageChanged"/>
                 <Label Content="Project"/>
                 <ComboBox x:Name="projectsBox" Width="250"
-                          ItemsSource="{Binding}"
-                          SelectionChanged="ProjectChanged"/>
-                <Button x:Name="runBtn" Content=">" Width="75" Margin="5,0" Click="RunProject"/>
+                          ItemsSource="{Binding Projects}"
+                          SelectionChanged="ProjectChanged"
+                          IsEnabled="{Binding RunProject}"/>
+                <Button x:Name="runBtn" Content=">" Width="75" Margin="5,0" Command="{Binding RunProject}"/>
             </StackPanel>
         </DockPanel>
         <StatusBar DockPanel.Dock="Bottom">
@@ -66,22 +62,22 @@
                     <TextBlock Text="Words:" />
                 </StatusBarItem>
                 <StatusBarItem Width="Auto">
-                    <TextBlock Text="{Binding ElementName=filesGrid, Path=Items, Converter={StaticResource Sum}}" />
+                    <TextBlock Text="{Binding TotalWords}" />
                 </StatusBarItem>
                 <StatusBarItem Width="Auto">
                     <TextBlock Text="Unknown %:" />
                 </StatusBarItem>
                 <StatusBarItem Width="Auto">
-                    <TextBlock Text="{Binding ElementName=filesGrid, Path=Items, Converter={StaticResource TotalPercent}}" />
+                    <TextBlock Text="{Binding UnknownPercent, StringFormat=F}" />
                 </StatusBarItem>
             </StackPanel>
             <Separator Grid.Column="1" />
             <StatusBarItem Grid.Column="2">
-                <TextBlock x:Name="log"/>
+                <TextBlock Text="{Binding Log}"/>
             </StatusBarItem>
             <Separator Grid.Column="3" />
             <StatusBarItem Grid.Column="4">
-                <ProgressBar x:Name="projectProgress" Value="100" Width="250" Height="16" />
+                <ProgressBar Value="{Binding ProgressValue}" Width="250" Height="16" />
             </StatusBarItem>
         </StatusBar>
         <Grid DockPanel.Dock="Bottom">
@@ -94,7 +90,7 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             <DataGrid x:Name="filesGrid" Grid.Column="0" Grid.RowSpan="2"
-                      ItemsSource="{Binding}"
+                      ItemsSource="{Binding Files}"
                       AutoGenerateColumns="False"
                       SelectionMode="Single"
                       IsReadOnly="True">
@@ -116,39 +112,18 @@
                     <DataGridTextColumn Header="File Name" Width="Auto" Binding="{Binding FileName}"/>
                     <DataGridTextColumn Header="Size" Width="*" Binding="{Binding Size}"/>
                     <DataGridTextColumn Header="Known" Width="*" Binding="{Binding Known}"/>
-                    <DataGridTextColumn Header="%" Width="*">
-                        <DataGridTextColumn.Binding>
-                            <MultiBinding Converter="{StaticResource Percent}">
-                                <Binding Path="Size"/>
-                                <Binding Path="Known"/>
-                            </MultiBinding>
-                        </DataGridTextColumn.Binding>
-                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="%" Width="*" Binding="{Binding KnownPercent, StringFormat=F}"/>
                     <DataGridTextColumn Header="Maybe" Width="*" Binding="{Binding Maybe}"/>
-                    <DataGridTextColumn Header="%" Width="*">
-                        <DataGridTextColumn.Binding>
-                            <MultiBinding Converter="{StaticResource Percent}">
-                                <Binding Path="Size"/>
-                                <Binding Path="Maybe"/>
-                            </MultiBinding>
-                        </DataGridTextColumn.Binding>
-                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="%" Width="*" Binding="{Binding MaybePercent, StringFormat=F}"/>
                     <DataGridTextColumn Header="Unknown" Width="*" Binding="{Binding Unknown}"/>
-                    <DataGridTextColumn Header="%" Width="*" SortDirection="Descending">
-                        <DataGridTextColumn.Binding>
-                            <MultiBinding Converter="{StaticResource Percent}">
-                                <Binding Path="Size"/>
-                                <Binding Path="Unknown"/>
-                            </MultiBinding>
-                        </DataGridTextColumn.Binding>
-                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="%" Width="*" Binding="{Binding UnknownPercent, StringFormat=F}"/>
                 </DataGrid.Columns>
             </DataGrid>
             <DataGrid x:Name="wordsGrid" Grid.Column="1" Grid.Row="0">
 
             </DataGrid>
             <DataGrid x:Name="dictsGrid" Grid.Column="1" Grid.Row="1"
-                      ItemsSource="{Binding}"
+                      ItemsSource="{Binding Dictionaries}"
                       AutoGenerateColumns="False"
                       SelectionMode="Single"
                       IsReadOnly="True">
