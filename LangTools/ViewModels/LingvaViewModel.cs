@@ -102,7 +102,7 @@ namespace LangTools.ViewModels
         {
             get
             {
-                return (currentLanguage as IDataErrorInfo).Error;
+                throw new NotImplementedException();
             }
         }
 
@@ -110,7 +110,35 @@ namespace LangTools.ViewModels
         {
             get
             {
-                string error = (currentLanguage as IDataErrorInfo)[propertyName];
+                string error = null;
+                switch (propertyName)
+                {
+                    case "Language":
+                        switch (currentLanguage.ValidateLanguageName())
+                        {
+                            case ValidationError.LANGNAMEEMPTY:
+                                error = "Language name can't be empty.";
+                                break;
+                            case ValidationError.LANGTAKEN:
+                                error = "Language is already in the database.";
+                                break;
+                        }
+                        break;
+                    case "Folder":
+                        switch (currentLanguage.ValidateLanguageFolder())
+                        {
+                            case ValidationError.FOLDERNAMEEMPTY:
+                                error = "Select the folder.";
+                                break;
+                            case ValidationError.FOLDERTAKEN:
+                                error = "Folder name is already taken.";
+                                break;
+                        }
+                        break;
+                    default:
+                        throw new ApplicationException("Unknown Property being validated on Product.");
+                }
+
                 validProperties[propertyName] = String.IsNullOrEmpty(error);
                 ValidateProperties();
                 CommandManager.InvalidateRequerySuggested();

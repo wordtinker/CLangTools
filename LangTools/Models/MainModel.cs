@@ -74,7 +74,6 @@ namespace LangTools.Models
             corpusWatcher.Filter = "*.*";
             // Remark : deleting of old projects from storage is postponed
             // until the next time LanguageChanged is called.
-            // TODO: Later.
 
             // Have to use Dispatcher to execute Action in the same thread as ViewModel
             corpusWatcher.Created += (obj, e) =>  App.Current.Dispatcher.BeginInvoke(
@@ -170,9 +169,8 @@ namespace LangTools.Models
                 ));
 
             // Files Directory Watcher
-            // Remark : deleting of stats for deleted filese from storage is postponed
+            // Remark : deleting of stats for deleted files from storage is postponed
             // until the next time ProjectChanged is called.
-            // TODO: Later
             filesWatcher = new FileSystemWatcher();
             filesWatcher.NotifyFilter = NotifyFilters.FileName;
             filesWatcher.Filter = "*.txt";

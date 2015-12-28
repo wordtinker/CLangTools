@@ -28,12 +28,13 @@
                 <ComboBox x:Name="languagesBox" Width="120"
                           ItemsSource="{Binding Languages}"
                           DisplayMemberPath="Language"
-                          SelectionChanged="LanguageChanged"/>
+                          SelectionChanged="LanguageChanged"
+                          IsEnabled="{Binding ProjectSelectable}"/>
                 <Label Content="Project"/>
                 <ComboBox x:Name="projectsBox" Width="250"
                           ItemsSource="{Binding Projects}"
                           SelectionChanged="ProjectChanged"
-                          IsEnabled="{Binding RunProject}"/>
+                          IsEnabled="{Binding ProjectSelectable}"/>
                 <Button x:Name="runBtn" Content=">" Width="75" Margin="5,0" Command="{Binding RunProject}"/>
             </StackPanel>
         </DockPanel>

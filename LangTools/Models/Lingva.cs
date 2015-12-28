@@ -1,47 +1,52 @@
 ﻿using LangTools.DataAccess;
-using System;
-using System.ComponentModel;
 
 namespace LangTools.Models
 {
-    class Lingva : IDataErrorInfo
+    enum ValidationError{
+        LANGNAMEEMPTY,
+        LANGTAKEN,
+        FOLDERNAMEEMPTY,
+        FOLDERTAKEN,
+        NONE
+    }
+
+    class Lingva
     {
         // Properties
         public string Language { get; set; }
         public string Folder { get; set; }
 
         // Validation logic
-        // TODO: Later make it ENUM, text in ViewModel
-        private string ValidateLanguageName()
+        public ValidationError ValidateLanguageName()
         {
             if (Language.Length == 0)
             {
-                return "Language name can't be empty.";
+                return ValidationError.LANGNAMEEMPTY;
             }
 
             Storage storage = (Storage)App.Current.Properties["storage"];
             if (storage.LanguageExists(Language))
             {
-                return "Language is already in the database.";
+                return ValidationError.LANGTAKEN;
             }
 
-            return string.Empty;
+            return ValidationError.NONE;
         }
 
-        private string ValidateLanguageFolder()
+        public ValidationError ValidateLanguageFolder()
         {
             if (Folder.Length == 0)
             {
-                return "Select the folder.";
+                return ValidationError.FOLDERNAMEEMPTY;
             }
 
             Storage storage = (Storage)App.Current.Properties["storage"];
             if (storage.FolderExists(Folder))
             {
-                return "Folder name is already taken.";
+                return ValidationError.FOLDERTAKEN;
             }
 
-            return string.Empty;
+            return ValidationError.NONE;
         }
 
         // Equals ocerride
@@ -60,36 +65,5 @@ namespace LangTools.Models
         {
             return Folder.GetHashCode();
         }
-
-        // IDataErrorInfo interface
-        public string Error
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        public string this[string propertyName]
-        {
-            get
-            {
-                string validationResult = null;
-                switch (propertyName)
-                {
-                    case "Language":
-                        validationResult = ValidateLanguageName();
-                        break;
-                    case "Folder":
-                        validationResult = ValidateLanguageFolder();
-                        break;
-                    default:
-                        throw new ApplicationException("Unknown Property being validated on Product.");
-                }
-                return validationResult;
-            }
-        }
-
-
     }
 }

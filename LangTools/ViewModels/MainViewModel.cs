@@ -17,6 +17,7 @@ namespace LangTools.ViewModels
         private int totalUnknown;
         private string log;
         private int progressValue;
+        private bool projectSelectable = true;
 
         // Properties
         public ObservableCollection<LingvaViewModel> Languages { get; }
@@ -52,6 +53,17 @@ namespace LangTools.ViewModels
             get { return progressValue; }
             set { progressValue = value;  RaisePropertyChanged("ProgressValue"); }
         }
+        public bool ProjectSelectable
+        {
+            // TODO
+            get { return projectSelectable; }
+            set
+            {
+                projectSelectable = value;
+                RaisePropertyChanged("ProjectSelectable");
+            }
+        }
+
         // Constructors
         public MainViewModel()
         {
@@ -110,6 +122,7 @@ namespace LangTools.ViewModels
         {
             Logger.Write("Project is about to change.", Severity.DEBUG);
             model.UnselectProject();
+            Log = "";
         }
 
         public void SelectProject(object item)
@@ -135,17 +148,9 @@ namespace LangTools.ViewModels
             model.RemoveOldLanguage(lang);
         }
 
-        // TODO
-        //    // Disable controls
-        //    languagesBox.IsEnabled = false;
-        //    projectsBox.IsEnabled = false;
-        //    // Enaable controls
-        //    languagesBox.IsEnabled = true;
-        //    projectsBox.IsEnabled = true;
-        //}
-
         private async Task HandleAnalysis()
         {
+            ProjectSelectable = false;
             //// Callback function to react on the progress
             //// during analysis
             Progress<AnalysisProgress> progress = new Progress<AnalysisProgress>(ev =>
@@ -165,7 +170,7 @@ namespace LangTools.ViewModels
             Logger.Write("Requesting Project analysis.", Severity.DEBUG);
 
             await Task.Run(() => model.Analyze(progress));
-            
+
             // Get the new project stats
             int newKnownQty = Files.Sum(x => x.Known.GetValueOrDefault());
             int newMaybeQty = Files.Sum(x => x.Maybe.GetValueOrDefault());
@@ -177,6 +182,7 @@ namespace LangTools.ViewModels
             Logger.Write("Project analysis is ready.", Severity.DEBUG);
             // Update totals
             UpdateTotalStats();
+            ProjectSelectable = true;
         }
 
         private void UpdateTotalStats()
