@@ -65,6 +65,18 @@ namespace LangTools
             }
         }
 
+        private void FileRowChanged(object sender, SelectionChangedEventArgs e)
+        {
+            MainViewModel vm = (MainViewModel)base.DataContext;
+            vm.FileRowIsAboutToChange();
+            DataGrid grid = (DataGrid)sender;
+            FileStatsViewModel row = grid.SelectedItem as FileStatsViewModel;
+            if (row != null)
+            {
+                vm.ShowWords(row);
+            }
+        }
+
         ///// <summary>
         ///// Shows modal window to manage languages.
         ///// </summary>

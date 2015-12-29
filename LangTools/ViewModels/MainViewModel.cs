@@ -2,6 +2,7 @@
 using MicroMvvm;
 using System;
 using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -24,6 +25,7 @@ namespace LangTools.ViewModels
         public ObservableCollection<string> Projects { get; }
         public ObservableCollection<DictViewModel> Dictionaries { get; }
         public ObservableCollection<FileStatsViewModel> Files { get; }
+        public ObservableCollection<WordViewModel> Words { get; }
         public int TotalWords
         {
             get { return totalWords; }
@@ -55,7 +57,6 @@ namespace LangTools.ViewModels
         }
         public bool ProjectSelectable
         {
-            // TODO
             get { return projectSelectable; }
             set
             {
@@ -97,6 +98,8 @@ namespace LangTools.ViewModels
                 totalUnknown -= fsvm.Unknown.GetValueOrDefault();
                 TotalWords -= fsvm.Size.GetValueOrDefault();
             };
+
+            Words = new ObservableCollection<WordViewModel>();
 
             model.InitializeLanguages();
             ProgressValue = 100;
@@ -150,6 +153,7 @@ namespace LangTools.ViewModels
 
         private async Task HandleAnalysis()
         {
+            FileRowIsAboutToChange();
             ProjectSelectable = false;
             //// Callback function to react on the progress
             //// during analysis
@@ -189,6 +193,19 @@ namespace LangTools.ViewModels
         {
             totalUnknown = Files.Sum(x => x.Unknown.GetValueOrDefault());
             TotalWords = Files.Sum(x => x.Size.GetValueOrDefault());
+        }
+
+        public void FileRowIsAboutToChange()
+        {
+            Words.Clear();
+        }
+
+        public void ShowWords(FileStatsViewModel fileStatsVM)
+        {
+            foreach(var item in model.GetUnknownWords(fileStatsVM.FileStats))
+            {
+                Words.Add(new WordViewModel {Word=item.Key, Quantity=item.Value });
+            }
         }
 
         // Commands

@@ -113,6 +113,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="ViewModels\WordViewModel.cs" />
     <Compile Include="Views\LangWindow.xaml.cs">
       <DependentUpon>LangWindow.xaml</DependentUpon>
     </Compile>

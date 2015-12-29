@@ -94,6 +94,7 @@
                       ItemsSource="{Binding Files}"
                       AutoGenerateColumns="False"
                       SelectionMode="Single"
+                      SelectionChanged="FileRowChanged"
                       IsReadOnly="True">
                 <DataGrid.ContextMenu>
                     <ContextMenu>
@@ -120,8 +121,15 @@
                     <DataGridTextColumn Header="%" Width="*" Binding="{Binding UnknownPercent, StringFormat=F}"/>
                 </DataGrid.Columns>
             </DataGrid>
-            <DataGrid x:Name="wordsGrid" Grid.Column="1" Grid.Row="0">
-
+            <DataGrid x:Name="wordsGrid" Grid.Column="1" Grid.Row="0"
+                      ItemsSource="{Binding Words}"
+                      AutoGenerateColumns="False"
+                      SelectionMode="Single"
+                      IsReadOnly="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Word" Width="*" Binding="{Binding Word}"/>
+                    <DataGridTextColumn Header="Qty" Width="Auto" Binding="{Binding Quantity}"/>
+                </DataGrid.Columns>
             </DataGrid>
             <DataGrid x:Name="dictsGrid" Grid.Column="1" Grid.Row="1"
                       ItemsSource="{Binding Dictionaries}"

@@ -611,5 +611,10 @@ namespace LangTools.Models
                 Logger.Write(msg);
             }
         }
+
+        public Dictionary<string, int> GetUnknownWords(FileStats fs)
+        {
+            return storage.GetUnknownWords(fs);
+        }
     }
 }

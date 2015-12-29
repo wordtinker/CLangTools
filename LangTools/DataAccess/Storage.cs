@@ -2,9 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LangTools.DataAccess
 {
@@ -379,6 +376,34 @@ namespace LangTools.DataAccess
             }
             wordList.Clear();
             GC.Collect();
+        }
+
+        /// <summary>
+        /// Provides the list of unknown words and quantities for given
+        /// language, project and file.
+        /// </summary>
+        /// <param name="fs">FileStats</param>
+        /// <returns></returns>
+        internal Dictionary<string, int> GetUnknownWords(FileStats fs)
+        {
+            Dictionary<string, int> words = new Dictionary<string, int>();
+
+            SQLiteParameter fileParam = new SQLiteParameter("@file");
+            fileParam.Value = fs.FilePath;
+            fileParam.DbType = System.Data.DbType.String;
+            string sql = "SELECT word, quantity FROM Words " +
+                "WHERE file=@file ORDER BY quantity DESC";
+            using (SQLiteCommand cmd = new SQLiteCommand(sql, dbConn))
+            {
+                cmd.Parameters.Add(fileParam);
+                SQLiteDataReader dr = cmd.ExecuteReader();
+                while (dr.Read())
+                {
+                    words[dr.GetString(0)] = dr.GetInt32(1);
+                }
+                dr.Close();
+            }
+            return words;
         }
     }
 }

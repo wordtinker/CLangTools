@@ -7,6 +7,7 @@ namespace LangTools.ViewModels
     {
         private FileStats fileStats;
 
+        public FileStats FileStats { get { return fileStats; } }
         public string FileName { get { return fileStats.FileName; } }
         public string FilePath { get { return fileStats.FilePath; } }
         public Lingva Lingva { get { return fileStats.Lingva; } }
