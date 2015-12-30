@@ -616,5 +616,15 @@ namespace LangTools.Models
         {
             return storage.GetUnknownWords(fs);
         }
+
+        public Dictionary<string, int> GetUnknownWords()
+        {
+            if (currentProject != null)
+            {
+                return storage.GetUnknownWords(currentProject);
+            }
+            
+            return new Dictionary<string, int>();
+        }
     }
 }

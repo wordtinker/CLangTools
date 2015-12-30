@@ -121,16 +121,32 @@
                     <DataGridTextColumn Header="%" Width="*" Binding="{Binding UnknownPercent, StringFormat=F}"/>
                 </DataGrid.Columns>
             </DataGrid>
-            <DataGrid x:Name="wordsGrid" Grid.Column="1" Grid.Row="0"
+            <TabControl Grid.Column="1" Grid.Row="0">
+                <TabItem Header="File">
+                    <DataGrid 
                       ItemsSource="{Binding Words}"
                       AutoGenerateColumns="False"
                       SelectionMode="Single"
                       IsReadOnly="True">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Word" Width="*" Binding="{Binding Word}"/>
-                    <DataGridTextColumn Header="Qty" Width="Auto" Binding="{Binding Quantity}"/>
-                </DataGrid.Columns>
-            </DataGrid>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Word" Width="*" Binding="{Binding Word}"/>
+                            <DataGridTextColumn Header="Qty" Width="Auto" Binding="{Binding Quantity}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </TabItem>
+                <TabItem Header="Project">
+                    <DataGrid 
+                      ItemsSource="{Binding WordsInProject}"
+                      AutoGenerateColumns="False"
+                      SelectionMode="Single"
+                      IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Word" Width="*" Binding="{Binding Word}"/>
+                            <DataGridTextColumn Header="Qty" Width="Auto" Binding="{Binding Quantity}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </TabItem>
+            </TabControl>
             <DataGrid x:Name="dictsGrid" Grid.Column="1" Grid.Row="1"
                       ItemsSource="{Binding Dictionaries}"
                       AutoGenerateColumns="False"

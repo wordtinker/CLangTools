@@ -405,5 +405,29 @@ namespace LangTools.DataAccess
             }
             return words;
         }
+
+        internal Dictionary<string, int> GetUnknownWords(string project)
+        {
+            Dictionary<string, int> words = new Dictionary<string, int>();
+
+            SQLiteParameter projectParam = new SQLiteParameter("@project");
+            projectParam.Value = project;
+            projectParam.DbType = System.Data.DbType.String;
+            string sql = "SELECT word, SUM(quantity) as sum " +
+                "FROM Words JOIN Files on Words.file = Files.path " +
+                "WHERE project=@project " +
+                "GROUP BY word ORDER BY sum DESC LIMIT 100";
+            using (SQLiteCommand cmd = new SQLiteCommand(sql, dbConn))
+            {
+                cmd.Parameters.Add(projectParam);
+                SQLiteDataReader dr = cmd.ExecuteReader();
+                while (dr.Read())
+                {
+                    words[dr.GetString(0)] = dr.GetInt32(1);
+                }
+                dr.Close();
+            }
+            return words;
+        }
     }
 }

@@ -2,7 +2,6 @@
 using MicroMvvm;
 using System;
 using System.Collections.ObjectModel;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -19,6 +18,7 @@ namespace LangTools.ViewModels
         private string log;
         private int progressValue;
         private bool projectSelectable = true;
+        private FileStatsViewModel currentFile;
 
         // Properties
         public ObservableCollection<LingvaViewModel> Languages { get; }
@@ -26,6 +26,8 @@ namespace LangTools.ViewModels
         public ObservableCollection<DictViewModel> Dictionaries { get; }
         public ObservableCollection<FileStatsViewModel> Files { get; }
         public ObservableCollection<WordViewModel> Words { get; }
+        public ObservableCollection<WordViewModel> WordsInProject { get; }
+
         public int TotalWords
         {
             get { return totalWords; }
@@ -100,6 +102,7 @@ namespace LangTools.ViewModels
             };
 
             Words = new ObservableCollection<WordViewModel>();
+            WordsInProject = new ObservableCollection<WordViewModel>();
 
             model.InitializeLanguages();
             ProgressValue = 100;
@@ -126,6 +129,7 @@ namespace LangTools.ViewModels
             Logger.Write("Project is about to change.", Severity.DEBUG);
             model.UnselectProject();
             Log = "";
+            WordsInProject.Clear();
         }
 
         public void SelectProject(object item)
@@ -134,7 +138,8 @@ namespace LangTools.ViewModels
             string project = (string)item;
             // Let the model know that selected project changed
             model.SelectProject(project);
-            // TODO: Update list of words related to project
+            // Update list of words related to project
+            ShowWordsForProject();
         }
 
         public void AddNewLanguage(LingvaViewModel languageViewModel)
@@ -153,8 +158,9 @@ namespace LangTools.ViewModels
 
         private async Task HandleAnalysis()
         {
-            FileRowIsAboutToChange();
             ProjectSelectable = false;
+            Words.Clear();
+            WordsInProject.Clear();
             //// Callback function to react on the progress
             //// during analysis
             Progress<AnalysisProgress> progress = new Progress<AnalysisProgress>(ev =>
@@ -187,6 +193,9 @@ namespace LangTools.ViewModels
             // Update totals
             UpdateTotalStats();
             ProjectSelectable = true;
+            // Update WordList
+            if (currentFile != null) { ShowWords(currentFile); }
+            ShowWordsForProject();
         }
 
         private void UpdateTotalStats()
@@ -202,9 +211,19 @@ namespace LangTools.ViewModels
 
         public void ShowWords(FileStatsViewModel fileStatsVM)
         {
-            foreach(var item in model.GetUnknownWords(fileStatsVM.FileStats))
+            currentFile = fileStatsVM;
+            if (!ProjectSelectable) { return; }
+            foreach (var item in model.GetUnknownWords(fileStatsVM.FileStats))
             {
                 Words.Add(new WordViewModel {Word=item.Key, Quantity=item.Value });
+            }
+        }
+
+        private void ShowWordsForProject()
+        {
+            foreach (var item in model.GetUnknownWords())
+            {
+                WordsInProject.Add(new WordViewModel { Word = item.Key, Quantity = item.Value });
             }
         }
 
