@@ -23,7 +23,6 @@ namespace LangTools
             // Pass valid language into MainViewModel
             LingvaViewModel lang = (LingvaViewModel)newLanguage.DataContext;
             ((MainViewModel)base.DataContext).AddNewLanguage(lang);
-            
             // Clear text controls.
             langEdit.Clear();
             folderEdit.Clear();

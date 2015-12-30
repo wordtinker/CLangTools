@@ -16,6 +16,15 @@ namespace LangTools.Models
         public string Language { get; set; }
         public string Folder { get; set; }
 
+        // Constructors
+        public Lingva() {}
+
+        public Lingva(Lingva other)
+        {
+            Language = other.Language;
+            Folder = other.Folder;
+        }
+
         // Validation logic
         public ValidationError ValidateLanguageName()
         {

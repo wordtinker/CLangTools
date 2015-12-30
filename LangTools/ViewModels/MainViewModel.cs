@@ -144,7 +144,7 @@ namespace LangTools.ViewModels
 
         public void AddNewLanguage(LingvaViewModel languageViewModel)
         {
-            Lingva lang = languageViewModel.CurrentLanguage;
+            Lingva lang = new Lingva(languageViewModel.CurrentLanguage);
             model.AddNewLanguage(lang);
         }
 

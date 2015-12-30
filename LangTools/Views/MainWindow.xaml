@@ -12,7 +12,7 @@
     </Window.DataContext>
     <DockPanel Margin="5">
         <Menu x:Name="menu" DockPanel.Dock="Top" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,0,0,5">
-            <MenuItem Header="_File">
+            <MenuItem Header="_App">
                 <MenuItem Header="_Exit" Command="{Binding ExitApp}"/>
             </MenuItem>
             <MenuItem Header="_Languages">
