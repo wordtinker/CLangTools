@@ -8,16 +8,6 @@
         Title="Languages" Height="400" Width="400" ResizeMode="NoResize">
     <DockPanel >
         <StackPanel x:Name="newLanguage" DockPanel.Dock="Bottom" Orientation="Vertical">
-            <StackPanel.Resources>
-                <Style TargetType="{x:Type TextBox}">
-                    <Style.Triggers>
-                        <Trigger Property="Validation.HasError" Value="true">
-                            <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self},
-                            Path=(Validation.Errors)[0].ErrorContent}"/>
-                        </Trigger>
-                    </Style.Triggers>
-                </Style>
-            </StackPanel.Resources>
             <StackPanel.DataContext>
                 <local:LingvaViewModel/>
             </StackPanel.DataContext>
@@ -31,6 +21,16 @@
                 <TextBox x:Name="folderEdit" Width="120" IsReadOnly="True"
                          Text="{Binding Folder, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}"/>
                 <Button Content="..." Click="FolderBtn_click"/>
+                <StackPanel.Resources>
+                    <Style TargetType="{x:Type TextBox}">
+                        <Style.Triggers>
+                            <Trigger Property="Validation.HasError" Value="true">
+                                <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self},
+                            Path=(Validation.Errors)[0].ErrorContent}"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </StackPanel.Resources>
             </StackPanel>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Bottom">
                 <Button Content="Add Language" Width="110" Margin="0,0,10,0"

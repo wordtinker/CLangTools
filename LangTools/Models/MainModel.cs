@@ -377,7 +377,7 @@ namespace LangTools.Models
             // Get known projects from DB
             List<string> projectsInDB = storage.GetProjects(selectedLang);
             // Find projects left only in DB
-            foreach (var leftover in projectsInDB.Except(projectsInDir))
+            foreach (string leftover in projectsInDB.Except(projectsInDir))
             {
                 // Remove leftover projects
                 Logger.Write(string.Format("Deleting project:{0} - {1}", selectedLang.Language, leftover), Severity.DEBUG);

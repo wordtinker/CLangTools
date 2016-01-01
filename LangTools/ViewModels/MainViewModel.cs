@@ -88,14 +88,14 @@ namespace LangTools.ViewModels
             Files = new ObservableCollection<FileStatsViewModel>();
             model.FileStatsAdded += (obj, args) =>
             {
-                var fsvm = new FileStatsViewModel(args.Content);
+                FileStatsViewModel fsvm = new FileStatsViewModel(args.Content);
                 Files.Add(fsvm);
                 totalUnknown += fsvm.Unknown.GetValueOrDefault();
                 TotalWords += fsvm.Size.GetValueOrDefault();
             };
             model.FileStatsRemoved += (obj, args) =>
             {
-                var fsvm = new FileStatsViewModel(args.Content);
+                FileStatsViewModel fsvm = new FileStatsViewModel(args.Content);
                 Files.Remove(fsvm);
                 totalUnknown -= fsvm.Unknown.GetValueOrDefault();
                 TotalWords -= fsvm.Size.GetValueOrDefault();

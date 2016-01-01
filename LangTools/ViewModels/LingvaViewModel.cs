@@ -122,6 +122,9 @@ namespace LangTools.ViewModels
                             case ValidationError.LANGTAKEN:
                                 error = "Language is already in the database.";
                                 break;
+                            case ValidationError.LANGWITHSPACES:
+                                error = "Language name contains trailing spaces.";
+                                break;
                         }
                         break;
                     case "Folder":

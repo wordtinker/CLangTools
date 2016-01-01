@@ -108,7 +108,7 @@ namespace LangTools.Core
 
         internal void LoadPlugin(string jsonPlugin)
         {
-            var serializer = new JavaScriptSerializer();
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
             plug = serializer.Deserialize<Plugin>(jsonPlugin);
         }
 

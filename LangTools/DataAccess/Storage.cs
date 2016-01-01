@@ -339,7 +339,7 @@ namespace LangTools.DataAccess
 
         internal void CommitWords()
         {
-            using (var cmd = new SQLiteCommand(dbConn))
+            using (SQLiteCommand cmd = new SQLiteCommand(dbConn))
             {
                 using (SQLiteTransaction transaction = dbConn.BeginTransaction())
                 {

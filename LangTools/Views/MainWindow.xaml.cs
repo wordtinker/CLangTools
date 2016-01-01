@@ -97,7 +97,7 @@ namespace LangTools
 
         private void FilesContextMenu_ClickOpenFile(object sender, RoutedEventArgs e)
         {
-            var item = filesGrid.SelectedItem as FileStatsViewModel;
+            FileStatsViewModel item = filesGrid.SelectedItem as FileStatsViewModel;
             if (item != null)
             {
                 item.OpenFile();
@@ -106,7 +106,7 @@ namespace LangTools
 
         private void FilesContextMenu_ClickOpenOutput(object sender, RoutedEventArgs e)
         {
-            var item = filesGrid.SelectedItem as FileStatsViewModel;
+            FileStatsViewModel item = filesGrid.SelectedItem as FileStatsViewModel;
             if (item != null)
             {
                 item.OpenOutput();
@@ -115,7 +115,7 @@ namespace LangTools
 
         private void FilesContextMenu_ClickDeleteFile(object sender, RoutedEventArgs e)
         {
-            var item = filesGrid.SelectedItem as FileStatsViewModel;
+            FileStatsViewModel item = filesGrid.SelectedItem as FileStatsViewModel;
             if (item != null)
             {
                 item.DeleteFile();
@@ -124,7 +124,7 @@ namespace LangTools
 
         private void FilesContextMenu_ClickDeleteOutput(object sender, RoutedEventArgs e)
         {
-            var item = filesGrid.SelectedItem as FileStatsViewModel;
+            FileStatsViewModel item = filesGrid.SelectedItem as FileStatsViewModel;
             if (item != null)
             {
                 item.DeleteOutput();
@@ -139,7 +139,7 @@ namespace LangTools
 
         private void DictContextMenu_ClickOpen(object sender, RoutedEventArgs e)
         {
-            var item = dictsGrid.SelectedItem as DictViewModel;
+            DictViewModel item = dictsGrid.SelectedItem as DictViewModel;
             if (item != null)
             {
                 item.OpenFile();
@@ -148,7 +148,7 @@ namespace LangTools
 
         private void DictContextMenu_ClickDelete(object sender, RoutedEventArgs e)
         {
-            var item = dictsGrid.SelectedItem as DictViewModel;
+            DictViewModel item = dictsGrid.SelectedItem as DictViewModel;
             if (item != null)
             {
                 item.DeleteFile();

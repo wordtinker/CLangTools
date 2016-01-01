@@ -4,6 +4,7 @@ namespace LangTools.Models
 {
     enum ValidationError{
         LANGNAMEEMPTY,
+        LANGWITHSPACES,
         LANGTAKEN,
         FOLDERNAMEEMPTY,
         FOLDERTAKEN,
@@ -28,13 +29,19 @@ namespace LangTools.Models
         // Validation logic
         public ValidationError ValidateLanguageName()
         {
-            if (Language.Length == 0)
+            string lang = Language.Trim();
+            if (lang.Length == 0)
             {
                 return ValidationError.LANGNAMEEMPTY;
             }
 
+            if (lang.Length != Language.Length)
+            {
+                return ValidationError.LANGWITHSPACES;
+            }
+
             Storage storage = (Storage)App.Current.Properties["storage"];
-            if (storage.LanguageExists(Language))
+            if (storage.LanguageExists(lang))
             {
                 return ValidationError.LANGTAKEN;
             }
