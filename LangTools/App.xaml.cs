@@ -80,8 +80,6 @@ namespace LangTools
                 return;
             }
 
-            // TODO: Test different platforms
-
             // Create DB file
             string dbFileName = Path.Combine(appDir, "lt.db");
             if (!File.Exists(dbFileName))
