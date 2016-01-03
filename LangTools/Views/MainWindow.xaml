@@ -10,164 +10,191 @@
     <Window.DataContext>
         <localVM:MainViewModel/>
     </Window.DataContext>
-    <DockPanel Margin="5">
-        <Menu x:Name="menu" DockPanel.Dock="Top" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,0,0,5">
-            <MenuItem Header="_App">
-                <MenuItem Header="_Exit" Command="{Binding ExitApp}"/>
-            </MenuItem>
-            <MenuItem Header="_Languages">
-                <MenuItem Header="_Manage" Click="LanguagesManage_click"/>
-            </MenuItem>
-            <MenuItem Header="_Help">
-                <MenuItem Header="About" Command="{Binding ShowHelp}"/>
-            </MenuItem>
-        </Menu>
-        <DockPanel DockPanel.Dock="Top" VerticalAlignment="Top">
-            <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
-                <Label Content="Language"/>
-                <ComboBox x:Name="languagesBox" Width="120"
+    <Border BorderThickness="10,0,10,10">
+        <DockPanel Background="#FFF0F0F0">
+            <Menu x:Name="menu" DockPanel.Dock="Top" HorizontalAlignment="Left" VerticalAlignment="Top">
+                <MenuItem Header="_App">
+                    <MenuItem Header="_Exit" Command="{Binding ExitApp}"/>
+                </MenuItem>
+                <MenuItem Header="_Languages">
+                    <MenuItem Header="_Manage" Click="LanguagesManage_click"/>
+                </MenuItem>
+                <MenuItem Header="_Help">
+                    <MenuItem Header="About" Command="{Binding ShowHelp}"/>
+                </MenuItem>
+            </Menu>
+            <DockPanel DockPanel.Dock="Top" VerticalAlignment="Top" Margin="0,5,0,0">
+                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+                    <Label Content="Language"/>
+                    <ComboBox x:Name="languagesBox" Width="120"
                           ItemsSource="{Binding Languages}"
                           DisplayMemberPath="Language"
                           SelectionChanged="LanguageChanged"
                           IsEnabled="{Binding ProjectSelectable}"/>
-                <Label Content="Project"/>
-                <ComboBox x:Name="projectsBox" Width="250"
+                    <Label Content="Project"/>
+                    <ComboBox x:Name="projectsBox" Width="250"
                           ItemsSource="{Binding Projects}"
                           SelectionChanged="ProjectChanged"
                           IsEnabled="{Binding ProjectSelectable}"/>
-                <Button x:Name="runBtn" Content=">" Width="75" Margin="5,0" Command="{Binding RunProject}"/>
-            </StackPanel>
+                    <Button x:Name="runBtn" Content=">" Width="75" Margin="5,0" Command="{Binding RunProject}"/>
+                </StackPanel>
+            </DockPanel>
+            <StatusBar DockPanel.Dock="Bottom">
+                <StatusBar.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="250" />
+                            </Grid.ColumnDefinitions>
+                        </Grid>
+                    </ItemsPanelTemplate>
+                </StatusBar.ItemsPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Grid.Column="0">
+                    <StatusBarItem>
+                        <TextBlock Text="Number of files:" />
+                    </StatusBarItem>
+                    <StatusBarItem>
+                        <TextBlock Text="{Binding ElementName=filesGrid, Path=Items.Count}" />
+                    </StatusBarItem>
+                    <StatusBarItem Width="Auto">
+                        <TextBlock Text="Words:" />
+                    </StatusBarItem>
+                    <StatusBarItem Width="Auto">
+                        <TextBlock Text="{Binding TotalWords}" />
+                    </StatusBarItem>
+                    <StatusBarItem Width="Auto">
+                        <TextBlock Text="Unknown %:" />
+                    </StatusBarItem>
+                    <StatusBarItem Width="Auto">
+                        <TextBlock Text="{Binding UnknownPercent, StringFormat=F}" />
+                    </StatusBarItem>
+                </StackPanel>
+                <Separator Grid.Column="1" />
+                <StatusBarItem Grid.Column="2">
+                    <TextBlock Text="{Binding Log}"/>
+                </StatusBarItem>
+                <Separator Grid.Column="3" />
+                <StatusBarItem Grid.Column="4" Margin="2">
+                    <ProgressBar Value="{Binding ProgressValue}" Width="240" Height="16" />
+                </StatusBarItem>
+            </StatusBar>
+            <Grid DockPanel.Dock="Bottom">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="250"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <GroupBox Grid.Column="0" Grid.RowSpan="2" Margin="5">
+                    <GroupBox.Header>
+                        <Label>Files</Label>
+                    </GroupBox.Header>
+                    <DataGrid x:Name="filesGrid"
+                              ItemsSource="{Binding Files}"
+                              AutoGenerateColumns="False"
+                              SelectionMode="Single"
+                              SelectionChanged="FileRowChanged"
+                              HeadersVisibility="Column"
+                              IsReadOnly="True"
+                              BorderThickness="0">
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Open File" Click="FilesContextMenu_ClickOpenFile"/>
+                                <MenuItem Header="Open Output File" Click="FilesContextMenu_ClickOpenOutput"/>
+                                <Separator/>
+                                <MenuItem Header="Delete File" Click="FilesContextMenu_ClickDeleteFile"/>
+                                <MenuItem Header="Delete Output File" Click="FilesContextMenu_ClickDeleteOutput"/>
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+                        <DataGrid.Resources>
+                            <Style TargetType="DataGridRow">
+                                <EventSetter Event="MouseDoubleClick" Handler="FilesRow_DoubleClick"/>
+                            </Style>
+                        </DataGrid.Resources>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="File Name" Width="Auto" Binding="{Binding FileName}"/>
+                            <DataGridTextColumn Header="Size" Width="*" Binding="{Binding Size}"/>
+                            <DataGridTextColumn Header="Known" Width="*" Binding="{Binding Known}"/>
+                            <DataGridTextColumn Header="%" Width="*" Binding="{Binding KnownPercent, StringFormat=F}"/>
+                            <DataGridTextColumn Header="Maybe" Width="*" Binding="{Binding Maybe}"/>
+                            <DataGridTextColumn Header="%" Width="*" Binding="{Binding MaybePercent, StringFormat=F}"/>
+                            <DataGridTextColumn Header="Unknown" Width="*" Binding="{Binding Unknown}"/>
+                            <DataGridTextColumn Header="%" Width="*" Binding="{Binding UnknownPercent, StringFormat=F}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </GroupBox>
+                <GroupBox Grid.Column="1" Grid.Row="0" Margin="5">
+                    <GroupBox.Header>
+                        <Label>Words</Label>
+                    </GroupBox.Header>
+                    <TabControl>
+                        <TabItem Header="Selected File">
+                            <DataGrid ItemsSource="{Binding Words}"
+                                      AutoGenerateColumns="False"
+                                      SelectionMode="Single"
+                                      HeadersVisibility="Column"
+                                      GridLinesVisibility="Horizontal"
+                                      IsReadOnly="True"
+                                      BorderThickness="0">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Word" Width="*" Binding="{Binding Word}"/>
+                                    <DataGridTextColumn Header="Qty" Width="Auto" Binding="{Binding Quantity}"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </TabItem>
+                        <TabItem Header="Project">
+                            <DataGrid ItemsSource="{Binding WordsInProject}"
+                                      AutoGenerateColumns="False"
+                                      SelectionMode="Single"
+                                      HeadersVisibility="Column"
+                                      GridLinesVisibility="Horizontal"
+                                      IsReadOnly="True"
+                                      BorderThickness="0">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Word" Width="*" Binding="{Binding Word}"/>
+                                    <DataGridTextColumn Header="Qty" Width="Auto" Binding="{Binding Quantity}"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </TabItem>
+                    </TabControl>
+                </GroupBox>
+                <GroupBox Grid.Column="1"  Grid.Row="1" Margin="5">
+                    <GroupBox.Header>
+                        <Label>Dictionaries</Label>
+                    </GroupBox.Header>
+                    <DataGrid x:Name="dictsGrid"
+                              BorderThickness="0"
+                              ItemsSource="{Binding Dictionaries}"
+                              AutoGenerateColumns="False"
+                              HeadersVisibility="Column"
+                              GridLinesVisibility="None"
+                              SelectionMode="Single"
+                              IsReadOnly="True"
+                              >
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Open Dictionary" Click="DictContextMenu_ClickOpen"/>
+                                <MenuItem Header="Delete Dictionary" Click="DictContextMenu_ClickDelete"/>
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+                        <DataGrid.Resources>
+                            <Style TargetType="DataGridRow">
+                                <EventSetter Event="MouseDoubleClick" Handler="DictsRow_DoubleClick"/>
+                            </Style>
+                        </DataGrid.Resources>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Name" Width="*" Binding="{Binding FileName}"/>
+                            <DataGridTextColumn Header="Type" Width="Auto" Binding="{Binding DictType}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </GroupBox>
+            </Grid>
         </DockPanel>
-        <StatusBar DockPanel.Dock="Bottom">
-            <StatusBar.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="250" />
-                        </Grid.ColumnDefinitions>
-                    </Grid>
-                </ItemsPanelTemplate>
-            </StatusBar.ItemsPanel>
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Grid.Column="0">
-                <StatusBarItem>
-                    <TextBlock Text="Number of files:" />
-                </StatusBarItem>
-                <StatusBarItem>
-                    <TextBlock Text="{Binding ElementName=filesGrid, Path=Items.Count}" />
-                </StatusBarItem>
-                <StatusBarItem Width="Auto">
-                    <TextBlock Text="Words:" />
-                </StatusBarItem>
-                <StatusBarItem Width="Auto">
-                    <TextBlock Text="{Binding TotalWords}" />
-                </StatusBarItem>
-                <StatusBarItem Width="Auto">
-                    <TextBlock Text="Unknown %:" />
-                </StatusBarItem>
-                <StatusBarItem Width="Auto">
-                    <TextBlock Text="{Binding UnknownPercent, StringFormat=F}" />
-                </StatusBarItem>
-            </StackPanel>
-            <Separator Grid.Column="1" />
-            <StatusBarItem Grid.Column="2">
-                <TextBlock Text="{Binding Log}"/>
-            </StatusBarItem>
-            <Separator Grid.Column="3" />
-            <StatusBarItem Grid.Column="4">
-                <ProgressBar Value="{Binding ProgressValue}" Width="250" Height="16" />
-            </StatusBarItem>
-        </StatusBar>
-        <Grid DockPanel.Dock="Bottom">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="250"/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            <DataGrid x:Name="filesGrid" Grid.Column="0" Grid.RowSpan="2"
-                      ItemsSource="{Binding Files}"
-                      AutoGenerateColumns="False"
-                      SelectionMode="Single"
-                      SelectionChanged="FileRowChanged"
-                      IsReadOnly="True">
-                <DataGrid.ContextMenu>
-                    <ContextMenu>
-                        <MenuItem Header="Open File" Click="FilesContextMenu_ClickOpenFile"/>
-                        <MenuItem Header="Open Output File" Click="FilesContextMenu_ClickOpenOutput"/>
-                        <Separator/>
-                        <MenuItem Header="Delete File" Click="FilesContextMenu_ClickDeleteFile"/>
-                        <MenuItem Header="Delete Output File" Click="FilesContextMenu_ClickDeleteOutput"/>
-                    </ContextMenu>
-                </DataGrid.ContextMenu>
-                <DataGrid.Resources>
-                    <Style TargetType="DataGridRow">
-                        <EventSetter Event="MouseDoubleClick" Handler="FilesRow_DoubleClick"/>
-                    </Style>
-                </DataGrid.Resources>
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="File Name" Width="Auto" Binding="{Binding FileName}"/>
-                    <DataGridTextColumn Header="Size" Width="*" Binding="{Binding Size}"/>
-                    <DataGridTextColumn Header="Known" Width="*" Binding="{Binding Known}"/>
-                    <DataGridTextColumn Header="%" Width="*" Binding="{Binding KnownPercent, StringFormat=F}"/>
-                    <DataGridTextColumn Header="Maybe" Width="*" Binding="{Binding Maybe}"/>
-                    <DataGridTextColumn Header="%" Width="*" Binding="{Binding MaybePercent, StringFormat=F}"/>
-                    <DataGridTextColumn Header="Unknown" Width="*" Binding="{Binding Unknown}"/>
-                    <DataGridTextColumn Header="%" Width="*" Binding="{Binding UnknownPercent, StringFormat=F}"/>
-                </DataGrid.Columns>
-            </DataGrid>
-            <TabControl Grid.Column="1" Grid.Row="0">
-                <TabItem Header="File">
-                    <DataGrid 
-                      ItemsSource="{Binding Words}"
-                      AutoGenerateColumns="False"
-                      SelectionMode="Single"
-                      IsReadOnly="True">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Word" Width="*" Binding="{Binding Word}"/>
-                            <DataGridTextColumn Header="Qty" Width="Auto" Binding="{Binding Quantity}"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </TabItem>
-                <TabItem Header="Project">
-                    <DataGrid 
-                      ItemsSource="{Binding WordsInProject}"
-                      AutoGenerateColumns="False"
-                      SelectionMode="Single"
-                      IsReadOnly="True">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Word" Width="*" Binding="{Binding Word}"/>
-                            <DataGridTextColumn Header="Qty" Width="Auto" Binding="{Binding Quantity}"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </TabItem>
-            </TabControl>
-            <DataGrid x:Name="dictsGrid" Grid.Column="1" Grid.Row="1"
-                      ItemsSource="{Binding Dictionaries}"
-                      AutoGenerateColumns="False"
-                      SelectionMode="Single"
-                      IsReadOnly="True">
-                <DataGrid.ContextMenu>
-                    <ContextMenu>
-                        <MenuItem Header="Open Dictionary" Click="DictContextMenu_ClickOpen"/>
-                        <MenuItem Header="Delete Dictionary" Click="DictContextMenu_ClickDelete"/>
-                    </ContextMenu>
-                </DataGrid.ContextMenu>
-                <DataGrid.Resources>
-                    <Style TargetType="DataGridRow">
-                        <EventSetter Event="MouseDoubleClick" Handler="DictsRow_DoubleClick"/>
-                    </Style>
-                </DataGrid.Resources>
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="File Name" Width="*" Binding="{Binding FileName}"/>
-                    <DataGridTextColumn Header="Type" Width="Auto" Binding="{Binding DictType}"/>
-                </DataGrid.Columns>
-            </DataGrid>
-        </Grid>
-    </DockPanel>
+    </Border>
 </Window>
