@@ -101,6 +101,7 @@
                               SelectionMode="Single"
                               SelectionChanged="FileRowChanged"
                               HeadersVisibility="Column"
+                              GridLinesVisibility="Horizontal"
                               IsReadOnly="True"
                               BorderThickness="0">
                         <DataGrid.ContextMenu>
@@ -139,7 +140,7 @@
                                       AutoGenerateColumns="False"
                                       SelectionMode="Single"
                                       HeadersVisibility="Column"
-                                      GridLinesVisibility="Horizontal"
+                                      GridLinesVisibility="None"
                                       IsReadOnly="True"
                                       BorderThickness="0">
                                 <DataGrid.Columns>
@@ -153,7 +154,7 @@
                                       AutoGenerateColumns="False"
                                       SelectionMode="Single"
                                       HeadersVisibility="Column"
-                                      GridLinesVisibility="Horizontal"
+                                      GridLinesVisibility="None"
                                       IsReadOnly="True"
                                       BorderThickness="0">
                                 <DataGrid.Columns>

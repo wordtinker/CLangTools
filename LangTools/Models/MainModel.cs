@@ -547,6 +547,11 @@ namespace LangTools.Models
                 return;
             }
 
+            // Stop watching for new files and dictionaries.
+            filesWatcher.EnableRaisingEvents = false;
+            genDictWatcher.EnableRaisingEvents = false;
+            specDictWatcher.EnableRaisingEvents = false;
+
             Logger.Write("Project analysis has started.", Severity.DEBUG);
             progress.Report(new AnalysisProgress(0));
             // Ensure directory structure, dict and output project specific dirs
@@ -589,6 +594,11 @@ namespace LangTools.Models
             // Commit changes to DB
             storage.CommitStats();
             storage.CommitWords();
+
+            // Start watching for files again
+            filesWatcher.EnableRaisingEvents = true;
+            genDictWatcher.EnableRaisingEvents = true;
+            specDictWatcher.EnableRaisingEvents = true;
         }
 
         private void EnsureProjectStructure(string langPath, string project)
