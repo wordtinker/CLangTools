@@ -11,7 +11,7 @@ namespace LangTools
 {
     static class IOTools
     {
-        internal static bool ListDirectories(string dir, out IEnumerable<string> foldersInDir)
+        public static bool ListDirectories(string dir, out IEnumerable<string> foldersInDir)
         {
             // Get every directory from directory
             Logger.Write(string.Format("Going to check {0} for directories.", dir), Severity.DEBUG);
@@ -29,7 +29,7 @@ namespace LangTools
             return true;
         }
 
-        internal static bool ListFiles(string dir, out IEnumerable<string> filesInDir, string filter="*.txt")
+        public static bool ListFiles(string dir, out IEnumerable<string> filesInDir, string filter="*.txt")
         {
             // Get every file name from directory
             Logger.Write(string.Format("Going to check {0} for files.", dir), Severity.DEBUG);
@@ -47,8 +47,9 @@ namespace LangTools
             return true;
         }
 
-        internal static bool ReadAllText(string filePath, out string content)
+        public static bool ReadAllText(string filePath, out string content)
         {
+            Logger.Write(string.Format("Reading from {0}", filePath), Severity.DEBUG);
             try
             {
                 content = File.ReadAllText(filePath, Encoding.UTF8);
@@ -62,8 +63,9 @@ namespace LangTools
             }
         }
 
-        internal static bool SaveFile(string filePath, string contents)
+        public static bool SaveFile(string filePath, string contents)
         {
+            Logger.Write(string.Format("Saving to {0}", filePath), Severity.DEBUG);
             try
             {
                 File.WriteAllText(filePath, contents);
@@ -76,7 +78,7 @@ namespace LangTools
             }
         }
 
-        internal static void OpenWithDefault(string fileName)
+        public static void OpenWithDefault(string fileName)
         {
             try
             {
@@ -88,7 +90,7 @@ namespace LangTools
             }
         }
 
-        internal static void DeleteFile(string fileName)
+        public static void DeleteFile(string fileName)
         {
             MessageBoxResult result = MessageBox.Show(
                 string.Format("Do you want to delete\n {0} ?", fileName),
@@ -117,7 +119,7 @@ namespace LangTools
 
     static class Logger
     {
-        internal static string ConfigFile { get; set; }
+        public static string ConfigFile { get; set; }
 
         private static void Write(string text)
         {
@@ -128,7 +130,7 @@ namespace LangTools
             }
         }
 
-        internal static void Write(string text, Severity severity = Severity.RELEASE)
+        public static void Write(string text, Severity severity = Severity.RELEASE)
         {
             if (ConfigFile != null)
             {

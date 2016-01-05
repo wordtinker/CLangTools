@@ -6,21 +6,21 @@ namespace LangTools.Models
     class FileStats : ObservableObject
     {
         // Members
-        string fileName;
-        string filePath;
-        Lingva lingva;
-        string project;
+        private string fileName;
+        private string filePath;
+        private Lingva lingva;
+        private string project;
                 
         // Properties
-        internal string FileName { get { return fileName; } }
-        internal string FilePath { get { return filePath; } }
-        internal Lingva Lingva { get { return lingva; } }
-        internal string Project { get { return project; } }
+        public string FileName { get { return fileName; } }
+        public string FilePath { get { return filePath; } }
+        public Lingva Lingva { get { return lingva; } }
+        public string Project { get { return project; } }
 
-        internal int? Size { get; set; }
-        internal int? Known { get; set; }
-        internal int? Maybe { get; set; }
-        internal int? Unknown { get; set; }
+        public int? Size { get; set; }
+        public int? Known { get; set; }
+        public int? Maybe { get; set; }
+        public int? Unknown { get; set; }
         public string OutPath
         {
             get

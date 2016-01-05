@@ -10,14 +10,11 @@ namespace LangTools.DataAccess
         // DB connection
         private SQLiteConnection dbConn;
         // temp variables to store data for transactions
-        private Dictionary<string, Dictionary<string, int>> wordList;
-        private List<FileStats> statList;
+        private Dictionary<string, Dictionary<string, int>> wordList = new Dictionary<string, Dictionary<string, int>>();
+        private List<FileStats> statList = new List<FileStats>();
 
         internal Storage(string dbFile)
         {
-            wordList = new Dictionary<string, Dictionary<string, int>>();
-            statList = new List<FileStats>();
-
             string connString = string.Format("Data Source={0};Version=3;foreign keys=True;", dbFile);
             dbConn = new SQLiteConnection(connString);
             dbConn.Open();

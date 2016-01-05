@@ -12,7 +12,7 @@ namespace LangTools.ViewModels
     class MainViewModel : ObservableObject
     {
         // Members
-        private MainModel model;
+        private MainModel model = new MainModel();
         private int totalWords;
         private int totalUnknown;
         private string log;
@@ -71,7 +71,6 @@ namespace LangTools.ViewModels
         public MainViewModel()
         {
             Logger.Write("MainView is starting.", Severity.DEBUG);
-            model = new MainModel();
 
             Languages = new ObservableCollection<LingvaViewModel>();
             model.LanguageAdded += (obj, args) => Languages.Add(new LingvaViewModel(args.Content));
@@ -144,6 +143,7 @@ namespace LangTools.ViewModels
 
         public void AddNewLanguage(LingvaViewModel languageViewModel)
         {
+            Logger.Write("Adding new language.", Severity.DEBUG);
             Lingva lang = new Lingva(languageViewModel.CurrentLanguage);
             model.AddNewLanguage(lang);
         }

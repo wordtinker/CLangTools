@@ -11,7 +11,7 @@ namespace LangTools.ViewModels
     {
         // Members
         private readonly Lingva currentLanguage;
-        private Dictionary<string, bool> validProperties;
+        private Dictionary<string, bool> validProperties = new Dictionary<string, bool>();
         private bool allPropertiesValid = false;
 
         // Properties
@@ -60,7 +60,6 @@ namespace LangTools.ViewModels
         public LingvaViewModel(Lingva language)
         {
             currentLanguage = language;
-            validProperties = new Dictionary<string, bool>();
             validProperties.Add("Language", false);
             validProperties.Add("Folder", false);
         }

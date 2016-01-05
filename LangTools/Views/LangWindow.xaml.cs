@@ -8,7 +8,7 @@ namespace LangTools
     /// </summary>
     public partial class LangWindow : Window
     {
-        internal LangWindow()
+        public LangWindow()
         {
             InitializeComponent();
         }

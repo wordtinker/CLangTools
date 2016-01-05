@@ -17,10 +17,10 @@ namespace LangTools.Models
         }
     }
 
-    internal class AnalysisProgress
+    class AnalysisProgress
     {
-        internal readonly double Percent;
-        internal readonly string FileName;
+        public readonly double Percent;
+        public readonly string FileName;
 
         internal AnalysisProgress(double progressValue, string fileName=null)
         {
@@ -32,44 +32,38 @@ namespace LangTools.Models
     class MainModel
     {
         // Memmbers
-        private Storage storage;
+        private Storage storage = (Storage)App.Current.Properties["storage"];
 
-        private FileSystemWatcher corpusWatcher;
-        private FileSystemWatcher specDictWatcher;
-        private FileSystemWatcher genDictWatcher;
-        private FileSystemWatcher filesWatcher;
+        private FileSystemWatcher corpusWatcher = new FileSystemWatcher();
+        private FileSystemWatcher specDictWatcher = new FileSystemWatcher();
+        private FileSystemWatcher genDictWatcher = new FileSystemWatcher();
+        private FileSystemWatcher filesWatcher = new FileSystemWatcher();
 
-        private List<Lingva> languages;
-        private List<string> projects;
-        private List<Dict> dicts;
-        private List<FileStats> files;
+        private List<Lingva> languages = new List<Lingva>();
+        private List<string> projects = new List<string>();
+        private List<Dict> dicts = new List<Dict>();
+        private List<FileStats> files = new List<FileStats>();
 
         private Lingva currentLanguage;
         private string currentProject;
 
-        internal event EventHandler<TypedEventArgs<string>> ProjectAdded;
-        internal event EventHandler<TypedEventArgs<string>> ProjectRemoved;
-        internal event EventHandler<TypedEventArgs<Dict>> DictAdded;
-        internal event EventHandler<TypedEventArgs<Dict>> DictRemoved;
-        internal event EventHandler<TypedEventArgs<FileStats>> FileStatsAdded;
-        internal event EventHandler<TypedEventArgs<FileStats>> FileStatsRemoved;
-        internal event EventHandler<TypedEventArgs<Lingva>> LanguageAdded;
-        internal event EventHandler<TypedEventArgs<Lingva>> LanguageRemoved;
+        public event EventHandler<TypedEventArgs<string>> ProjectAdded;
+        public event EventHandler<TypedEventArgs<string>> ProjectRemoved;
+        public event EventHandler<TypedEventArgs<Dict>> DictAdded;
+        public event EventHandler<TypedEventArgs<Dict>> DictRemoved;
+        public event EventHandler<TypedEventArgs<FileStats>> FileStatsAdded;
+        public event EventHandler<TypedEventArgs<FileStats>> FileStatsRemoved;
+        public event EventHandler<TypedEventArgs<Lingva>> LanguageAdded;
+        public event EventHandler<TypedEventArgs<Lingva>> LanguageRemoved;
 
-        internal MainModel()
+        public MainModel()
         {
-            storage = (Storage)App.Current.Properties["storage"];
-            languages = new List<Lingva>();
-            projects = new List<string>();
-            dicts = new List<Dict>();
-            files = new List<FileStats>();
             InitializeWatchers();
         }
 
-        void InitializeWatchers()
+        private void InitializeWatchers()
         {
             // Corpus Watcher
-            corpusWatcher = new FileSystemWatcher();
             corpusWatcher.NotifyFilter = NotifyFilters.DirectoryName;
             corpusWatcher.Filter = "*.*";
             // Remark : deleting of old projects from storage is postponed
@@ -95,7 +89,6 @@ namespace LangTools.Models
                 ));
 
             // Project specific dictionaries Watcher
-            specDictWatcher = new FileSystemWatcher();
             specDictWatcher.NotifyFilter = NotifyFilters.FileName;
             specDictWatcher.Filter = "*.txt";
 
@@ -132,7 +125,6 @@ namespace LangTools.Models
                 ));
 
             // General dictionaries Watcher
-            genDictWatcher = new FileSystemWatcher();
             genDictWatcher.NotifyFilter = NotifyFilters.FileName;
             genDictWatcher.Filter = "*.txt";
 
@@ -171,7 +163,6 @@ namespace LangTools.Models
             // Files Directory Watcher
             // Remark : deleting of stats for deleted files from storage is postponed
             // until the next time ProjectChanged is called.
-            filesWatcher = new FileSystemWatcher();
             filesWatcher.NotifyFilter = NotifyFilters.FileName;
             filesWatcher.Filter = "*.txt";
 
@@ -335,7 +326,7 @@ namespace LangTools.Models
 
         // Methods
 
-        internal void UnselectLanguage()
+        public void UnselectLanguage()
         {
             currentLanguage = null;
             // Stop watching previous corpus folder. Have to do stop watcher
@@ -348,7 +339,7 @@ namespace LangTools.Models
             };
         }
 
-        internal void SelectLanguage(Lingva lang)
+        public void SelectLanguage(Lingva lang)
         {
             Logger.Write("New language is chosen.", Severity.DEBUG);
             currentLanguage = lang;
@@ -385,7 +376,7 @@ namespace LangTools.Models
             }
         }
 
-        internal void UnselectProject()
+        public void UnselectProject()
         {
             currentProject = null;
             // Stop watching both dict folders
@@ -405,7 +396,7 @@ namespace LangTools.Models
             }
         }
 
-        internal void SelectProject(string project)
+        public void SelectProject(string project)
         {
             // language might be null during the proccess
             // of changing language.
@@ -502,7 +493,7 @@ namespace LangTools.Models
             }
         }
 
-        internal void AddNewLanguage(Lingva newLang)
+        public void AddNewLanguage(Lingva newLang)
         {
             // Add new language to DB.
             storage.AddLanguage(newLang);
@@ -510,7 +501,7 @@ namespace LangTools.Models
             AddLanguage(newLang);
         }
 
-        internal void RemoveOldLanguage(Lingva language)
+        public void RemoveOldLanguage(Lingva language)
         {
             // Remove old language from DB
             storage.RemoveLanguage(language);
@@ -539,7 +530,7 @@ namespace LangTools.Models
             }
         }
 
-        internal void Analyze(IProgress<AnalysisProgress> progress)
+        public void Analyze(IProgress<AnalysisProgress> progress)
         {
             if (currentProject == null || currentLanguage == null || files.Count == 0 || dicts.Count == 0)
             {
