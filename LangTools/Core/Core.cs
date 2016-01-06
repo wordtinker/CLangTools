@@ -8,15 +8,15 @@ using System.Web.Script.Serialization;
 
 namespace LangTools.Core
 {
-    internal class Report
+    class Report
     {
-        internal readonly List<Token> Tokens;
-        internal readonly Dictionary<string, int> UnknownWords;
-        internal readonly int Size;
-        internal readonly int Known;
-        internal readonly int Maybe;
+        public readonly List<Token> Tokens;
+        public readonly Dictionary<string, int> UnknownWords;
+        public readonly int Size;
+        public readonly int Known;
+        public readonly int Maybe;
 
-        internal Report(List<Token> tokens,
+        public Report(List<Token> tokens,
             Dictionary<string, int> unknownWords,
             int size, int known, int maybe)
         {
@@ -28,23 +28,23 @@ namespace LangTools.Core
         }
     }
 
-    internal class Analyzer
+    class Analyzer
     {
         private IEnumerable<string> dictPathes;
         private Lexer lexer = new Lexer();
         private string language;
 
-        internal Analyzer(string language)
+        public Analyzer(string language)
         {
             this.language = language;
         }
 
-        internal void AddDictionaries(IEnumerable<string> dNames)
+        public void AddDictionaries(IEnumerable<string> dNames)
         {
             this.dictPathes = dNames;
         }
 
-        internal Report AnalyzeFile(string path)
+        public Report AnalyzeFile(string path)
         {
             Logger.Write(string.Format("Analyzing the file: {0}", path), Severity.DEBUG);
             string content;
@@ -58,7 +58,7 @@ namespace LangTools.Core
             }
         }
 
-        internal void PrepareDictionaries()
+        public void PrepareDictionaries()
         {
             // Load plugin into lexer if we have plugin
             string jsonPlugin;
@@ -83,7 +83,7 @@ namespace LangTools.Core
         }
     }
 
-    internal class Lexer
+    class Lexer
     {
         private enum Source
         {
@@ -106,13 +106,13 @@ namespace LangTools.Core
         private int knownWordsCount;
         private int maybeWordsCount;
 
-        internal void LoadPlugin(string jsonPlugin)
+        public void LoadPlugin(string jsonPlugin)
         {
             JavaScriptSerializer serializer = new JavaScriptSerializer();
             plug = serializer.Deserialize<Plugin>(jsonPlugin);
         }
 
-        internal void LoadDictionary(string content)
+        public void LoadDictionary(string content)
         {
             content = content.ToLower();
             foreach(Token token in new Tokenizer(content))
@@ -124,7 +124,7 @@ namespace LangTools.Core
             }
         }
 
-        internal void ExpandDictionary()
+        public void ExpandDictionary()
         {
             // Sort pattern levels
             List<string> Layers = plug.Patterns.Keys.ToList();
@@ -168,7 +168,7 @@ namespace LangTools.Core
             }
         }
 
-        internal Report AnalyzeText(string content)
+        public Report AnalyzeText(string content)
         {
             // Reset text counters
             unknownWords = new Dictionary<string, int>();
@@ -245,7 +245,7 @@ namespace LangTools.Core
     /// <summary>
     /// Takes a string and returns iterator of tokens.
     /// </summary>
-    internal class Tokenizer :IEnumerable<Token>
+    class Tokenizer : IEnumerable<Token>
     {
         // Prepare regex statement
         // Any word including words with hebrew specific chars
@@ -257,7 +257,7 @@ namespace LangTools.Core
         private static Regex rx = new Regex(@"\p{L}+([״'׳""]\p{L}+)?", RegexOptions.Compiled);
         private string content;
 
-        internal Tokenizer(string content)
+        public Tokenizer(string content)
         {
             this.content = content;
         }
@@ -304,20 +304,20 @@ namespace LangTools.Core
         }
     }
 
-    internal enum TokenType
+    enum TokenType
     {
         WORD,
         NONWORD
     }
 
-    internal enum Klass
+    enum Klass
     {
         KNOWN,
         MAYBE,
         UNKNOWN
     }
 
-    internal class Token
+    class Token
     {
         public string Word { get; set; }
         public TokenType Type { get; set; }

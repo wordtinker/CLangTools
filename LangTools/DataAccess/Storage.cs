@@ -13,7 +13,7 @@ namespace LangTools.DataAccess
         private Dictionary<string, Dictionary<string, int>> wordList = new Dictionary<string, Dictionary<string, int>>();
         private List<FileStats> statList = new List<FileStats>();
 
-        internal Storage(string dbFile)
+        public Storage(string dbFile)
         {
             string connString = string.Format("Data Source={0};Version=3;foreign keys=True;", dbFile);
             dbConn = new SQLiteConnection(connString);
@@ -22,7 +22,7 @@ namespace LangTools.DataAccess
             Logger.Write("DB conn is open.", Severity.DEBUG);
         }
 
-        internal void Close()
+        public void Close()
         {
             dbConn.Close();
             Logger.Write("DB conn is closed.", Severity.DEBUG);
@@ -59,7 +59,7 @@ namespace LangTools.DataAccess
         /// </summary>
         /// <param name="language"></param>
         /// <returns></returns>
-        internal bool LanguageExists(string language)
+        public bool LanguageExists(string language)
         {
             string sql = "SELECT lang FROM Languages WHERE lang=@lang";
             using (SQLiteCommand cmd = new SQLiteCommand(sql, dbConn))
@@ -82,7 +82,7 @@ namespace LangTools.DataAccess
         /// </summary>
         /// <param name="folder"></param>
         /// <returns></returns>
-        internal bool FolderExists(string folder)
+        public bool FolderExists(string folder)
         {
             string sql = "SELECT lang FROM Languages WHERE directory=@dir";
             using (SQLiteCommand cmd = new SQLiteCommand(sql, dbConn))
@@ -106,7 +106,7 @@ namespace LangTools.DataAccess
         /// <param name="language"></param>
         /// <param name="directory"></param>
         /// <returns></returns>
-        internal void AddLanguage(Lingva lang)
+        public void AddLanguage(Lingva lang)
         {
             string sql = "INSERT INTO Languages VALUES(@lang, @directory)";
             using (SQLiteCommand cmd = new SQLiteCommand(sql, dbConn))
@@ -129,7 +129,7 @@ namespace LangTools.DataAccess
         /// Provides list of pairs: language, project folder.
         /// </summary>
         /// <returns>DataTable with language, project folder.</returns>
-        internal List<Lingva> GetLanguages()
+        public List<Lingva> GetLanguages()
         {
             List<Lingva> langs = new List<Lingva>();
 
@@ -150,7 +150,7 @@ namespace LangTools.DataAccess
         /// Removes the stats of the given language from DB.
         /// </summary>
         /// <param name="language"></param>
-        internal void RemoveLanguage(Lingva language)
+        public void RemoveLanguage(Lingva language)
         {
             SQLiteParameter param = new SQLiteParameter("@lang");
             param.Value = language.Language;
@@ -169,7 +169,7 @@ namespace LangTools.DataAccess
         /// </summary>
         /// <param name="selectedLang"></param>
         /// <returns></returns>
-        internal List<string> GetProjects(Lingva selectedLang)
+        public List<string> GetProjects(Lingva selectedLang)
         {
             List<string> projects = new List<string>();
             string sql = "SELECT project FROM Files WHERE lang=@lang GROUP BY project";
@@ -190,7 +190,7 @@ namespace LangTools.DataAccess
             return projects;
         }
 
-        internal void RemoveProject(Lingva language, string project)
+        public void RemoveProject(Lingva language, string project)
         {
             SQLiteParameter langParam = new SQLiteParameter("@lang");
             langParam.Value = language.Language;
@@ -209,7 +209,7 @@ namespace LangTools.DataAccess
             }
         }
 
-        internal List<FileStats> GetFilesStats(Lingva language, string project)
+        public List<FileStats> GetFilesStats(Lingva language, string project)
         {
             SQLiteParameter langParam = new SQLiteParameter("@lang");
             langParam.Value = language.Language;
@@ -249,7 +249,7 @@ namespace LangTools.DataAccess
         /// Removes the stats of the given file from the DB.
         /// </summary>
         /// <param name="file"></param>
-        internal void RemoveFileStats(FileStats file)
+        public void RemoveFileStats(FileStats file)
         {
             SQLiteParameter path = new SQLiteParameter("@path");
             path.Value = file.FilePath;
@@ -262,12 +262,12 @@ namespace LangTools.DataAccess
             }
         }
 
-        internal void UpdateStats(FileStats stats)
+        public void UpdateStats(FileStats stats)
         {
             statList.Add(stats);
         }
 
-        internal void CommitStats()
+        public void CommitStats()
         {
             string sql = "INSERT OR REPLACE INTO Files " +
                 "VALUES(@name, @path, @lang, @project, @size, @known, @maybe, @unknown)";
@@ -329,12 +329,12 @@ namespace LangTools.DataAccess
         /// </summary>
         /// <param name="filePath"></param>
         /// <param name="unknownWords"></param>
-        internal void UpdateWords(string filePath, Dictionary<string, int> unknownWords)
+        public void UpdateWords(string filePath, Dictionary<string, int> unknownWords)
         {
             wordList.Add(filePath, unknownWords);
         }
 
-        internal void CommitWords()
+        public void CommitWords()
         {
             using (SQLiteCommand cmd = new SQLiteCommand(dbConn))
             {
@@ -381,7 +381,7 @@ namespace LangTools.DataAccess
         /// </summary>
         /// <param name="fs">FileStats</param>
         /// <returns></returns>
-        internal Dictionary<string, int> GetUnknownWords(FileStats fs)
+        public Dictionary<string, int> GetUnknownWords(FileStats fs)
         {
             Dictionary<string, int> words = new Dictionary<string, int>();
 
@@ -403,7 +403,7 @@ namespace LangTools.DataAccess
             return words;
         }
 
-        internal Dictionary<string, int> GetUnknownWords(string project)
+        public Dictionary<string, int> GetUnknownWords(string project)
         {
             Dictionary<string, int> words = new Dictionary<string, int>();
 

@@ -7,12 +7,10 @@ namespace LangTools.Core
 {
     class Printer
     {
-        HTMLPrinter printer;
+        private HTMLPrinter printer = new HTMLPrinter();
 
-        internal Printer(string language)
+        public Printer(string language)
         {
-
-            printer = new HTMLPrinter();
             // Load CSS file
             string cssContent;
             string cssPath = Path.Combine(Directory.GetCurrentDirectory(), "plugins", language);
@@ -23,7 +21,7 @@ namespace LangTools.Core
             }
         }
 
-        internal void Print(string fileName, string project, string language, List<Token> tokens)
+        public void Print(string fileName, string project, string language, List<Token> tokens)
         {
             // Create proper name for output file;
             string outName = Path.ChangeExtension(fileName, ".html");
@@ -40,12 +38,11 @@ namespace LangTools.Core
         private class Wrapper : IEnumerable<string>
         {
             private List<Token> tokens;
-            private List<string> tags;
+            private List<string> tags = new List<string>();
 
             public Wrapper(List<Token> tokens)
             {
                 this.tokens = tokens;
-                this.tags = new List<string>();
             }
 
             private string getParagraph(string endOfParagraph)
@@ -97,12 +94,12 @@ namespace LangTools.Core
 
         private string css;
 
-        internal void LoadCSS(string cssContent)
+        public void LoadCSS(string cssContent)
         {
             css = cssContent;
         }
 
-        internal string toHTML(string fileName, List<Token> tokens)
+        public string toHTML(string fileName, List<Token> tokens)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append("<html><head><meta charset='utf-8'>");
