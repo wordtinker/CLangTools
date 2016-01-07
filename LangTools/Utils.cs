@@ -63,17 +63,32 @@ namespace LangTools
             }
         }
 
-        public static bool SaveFile(string filePath, string contents)
+        public static bool SaveFile(string filePath, string content)
         {
             Logger.Write(string.Format("Saving to {0}", filePath), Severity.DEBUG);
             try
             {
-                File.WriteAllText(filePath, contents);
+                File.WriteAllText(filePath, content);
                 return true;
             }
             catch (Exception e)
             {
                 Logger.Write(string.Format("Can't write file: {0}", e.Message));
+                return false;
+            }
+        }
+
+        public static bool AppendToFile(string filePath, string content)
+        {
+            Logger.Write(string.Format("Appending {0} to {1}", content, filePath), Severity.DEBUG);
+            try
+            {
+                File.AppendAllText(filePath, content);
+                return true;
+            }
+            catch (Exception e)
+            {
+                Logger.Write(string.Format("Can't append to file: {0}", e.Message));
                 return false;
             }
         }

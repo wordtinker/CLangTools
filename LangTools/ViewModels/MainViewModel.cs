@@ -227,6 +227,11 @@ namespace LangTools.ViewModels
             }
         }
 
+        public void AddWordToDictionary(WordViewModel word)
+        {
+            model.AddWordToDictionary(word.Word);
+        }
+
         // Commands
         public IAsyncCommand RunProject
         {

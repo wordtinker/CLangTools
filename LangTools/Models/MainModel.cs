@@ -32,6 +32,8 @@ namespace LangTools.Models
     class MainModel
     {
         // Memmbers
+        private const string COMMONDICTNAME = "Common.txt";
+
         private Storage storage = (Storage)App.Current.Properties["storage"];
 
         private FileSystemWatcher corpusWatcher = new FileSystemWatcher();
@@ -626,6 +628,16 @@ namespace LangTools.Models
             }
             
             return new Dictionary<string, int>();
+        }
+
+        public void AddWordToDictionary(string word)
+        {
+            string filePath = Path.Combine(
+                currentLanguage.Folder,
+                (string)App.Current.Properties["dicDir"],
+                currentProject, COMMONDICTNAME);
+            string wordToAppend = string.Format("{0}{1}", word, Environment.NewLine);
+            IOTools.AppendToFile(filePath, wordToAppend);
         }
     }
 }

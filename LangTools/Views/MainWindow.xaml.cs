@@ -154,5 +154,15 @@ namespace LangTools
                 item.DeleteFile();
             }
         }
+
+        private void WordRow_DoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            MainViewModel vm = (MainViewModel)base.DataContext;
+            DataGridRow item = sender as DataGridRow;
+            if (item != null)
+            {
+                vm.AddWordToDictionary((WordViewModel)item.DataContext);
+            }
+        }
     }
 }

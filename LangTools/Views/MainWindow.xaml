@@ -135,6 +135,11 @@
                         <Label>Words</Label>
                     </GroupBox.Header>
                     <TabControl>
+                        <TabControl.Resources>
+                            <Style TargetType="DataGridRow">
+                                <EventSetter Event="MouseDoubleClick" Handler="WordRow_DoubleClick"/>
+                            </Style>
+                        </TabControl.Resources>
                         <TabItem Header="Selected File">
                             <DataGrid ItemsSource="{Binding Words}"
                                       AutoGenerateColumns="False"
