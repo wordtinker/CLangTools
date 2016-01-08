@@ -7,7 +7,7 @@ namespace LangTools
 {
     public partial class MainWindow : Window
     {
-
+        // Constructor
         public MainWindow()
         {
             Logger.Write("Starting MainWindow.", Severity.DEBUG);
@@ -44,6 +44,11 @@ namespace LangTools
             }
         }
 
+        /// <summary>
+        /// Responds to project changed event.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ProjectChanged(object sender, SelectionChangedEventArgs e)
         {
             MainViewModel vm = (MainViewModel)base.DataContext;
@@ -65,6 +70,11 @@ namespace LangTools
             }
         }
 
+        /// <summary>
+        /// Responds to rowChanged event in the dataGrid with files.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void FileRowChanged(object sender, SelectionChangedEventArgs e)
         {
             MainViewModel vm = (MainViewModel)base.DataContext;
@@ -73,6 +83,7 @@ namespace LangTools
             FileStatsViewModel row = grid.SelectedItem as FileStatsViewModel;
             if (row != null)
             {
+                // Let the viewModel update the list of words related to selected file.
                 vm.ShowWords(row);
             }
         }
@@ -89,78 +100,132 @@ namespace LangTools
             dialog.ShowDialog();
         }
 
+        /// <summary>
+        /// Responds to DoubleClick even in the dataGrid with files.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void FilesRow_DoubleClick(object sender, MouseButtonEventArgs e)
         {
             DataGridRow row = (DataGridRow)sender;
+            // Let the view model open the report file.
             ((FileStatsViewModel)row.DataContext).OpenOutput();
         }
 
+        /// <summary>
+        /// Responds to click event in the context menu of the dataGrid with files.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void FilesContextMenu_ClickOpenFile(object sender, RoutedEventArgs e)
         {
             FileStatsViewModel item = filesGrid.SelectedItem as FileStatsViewModel;
             if (item != null)
             {
+                // Let the view model open origin file.
                 item.OpenFile();
             }
         }
 
+        /// <summary>
+        /// Responds to click event in the context menu of the dataGrid with files.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void FilesContextMenu_ClickOpenOutput(object sender, RoutedEventArgs e)
         {
             FileStatsViewModel item = filesGrid.SelectedItem as FileStatsViewModel;
             if (item != null)
             {
+                // Let the view model open report file.
                 item.OpenOutput();
             }
         }
 
+        /// <summary>
+        /// Responds to click event in the context menu of the dataGrid with files.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void FilesContextMenu_ClickDeleteFile(object sender, RoutedEventArgs e)
         {
             FileStatsViewModel item = filesGrid.SelectedItem as FileStatsViewModel;
             if (item != null)
             {
+                // Let the view model delete the origin file.
                 item.DeleteFile();
             }
         }
 
+        /// <summary>
+        /// Responds to click event in the context menu of the dataGrid with files.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void FilesContextMenu_ClickDeleteOutput(object sender, RoutedEventArgs e)
         {
             FileStatsViewModel item = filesGrid.SelectedItem as FileStatsViewModel;
             if (item != null)
             {
+                // Let the view model delete the report file.
                 item.DeleteOutput();
             }
         }
 
+        /// <summary>
+        /// Responds to doubleClick event in the dataGrid with dictionaries.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void DictsRow_DoubleClick(object sender, MouseButtonEventArgs e)
         {
             DataGridRow row = (DataGridRow)sender;
+            // Let the view model open the dictionary.
             ((DictViewModel)row.DataContext).OpenFile();
         }
 
+        /// <summary>
+        /// Responds to click event in the context menu of the dataGrid with dictionaries.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void DictContextMenu_ClickOpen(object sender, RoutedEventArgs e)
         {
             DictViewModel item = dictsGrid.SelectedItem as DictViewModel;
             if (item != null)
             {
+                // Let the view model open the dictionary.
                 item.OpenFile();
             }
         }
 
+        /// <summary>
+        /// Responds to click event in the context menu of the dataGrid with dictionaries.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void DictContextMenu_ClickDelete(object sender, RoutedEventArgs e)
         {
             DictViewModel item = dictsGrid.SelectedItem as DictViewModel;
             if (item != null)
             {
+                // Let the view model delete the dicionary.
                 item.DeleteFile();
             }
         }
 
+        /// <summary>
+        /// Responds to doubleClick event in the dataGrid with words.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void WordRow_DoubleClick(object sender, MouseButtonEventArgs e)
         {
             MainViewModel vm = (MainViewModel)base.DataContext;
             DataGridRow item = sender as DataGridRow;
             if (item != null)
             {
+                // Let view model add the word into dictionary.
                 vm.AddWordToDictionary((WordViewModel)item.DataContext);
             }
         }

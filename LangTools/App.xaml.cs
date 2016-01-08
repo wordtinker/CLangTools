@@ -11,6 +11,11 @@ namespace LangTools
     /// </summary>
     public partial class App : Application
     {
+        /// <summary>
+        /// Loads settings from configuaration file.
+        /// </summary>
+        /// <param name="applicationName"></param>
+        /// <returns></returns>
         private bool LoadConfig(out string applicationName)
         {
             try
@@ -44,6 +49,11 @@ namespace LangTools
             }
         }
 
+        /// <summary>
+        /// Prepares environmental settings for app and starts.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ApplicationStartup(object sender, StartupEventArgs e)
         {
             // Get app name from config file
@@ -111,17 +121,30 @@ namespace LangTools
             wnd.Show();         
         }
 
+        /// <summary>
+        /// General exception cather. Logs exceptions.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void HandleException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
         {
             Logger.Write(e.Exception.ToString());
             ReleaseStorage();
         }
 
+        /// <summary>
+        /// Exit event handler.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ApplicationExit(object sender, ExitEventArgs e)
         {
             ReleaseStorage();
         }
 
+        /// <summary>
+        /// Releases the DB connection.
+        /// </summary>
         private void ReleaseStorage()
         {
             ((Storage)Current.Properties["storage"]).Close();

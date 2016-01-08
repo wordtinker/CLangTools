@@ -9,11 +9,19 @@ using System.Windows;
 
 namespace LangTools
 {
+    /// <summary>
+    /// Simple class to handle common IO operations.
+    /// </summary>
     static class IOTools
     {
+        /// <summary>
+        /// Provides IEnumarable of directory names in the given directory.
+        /// </summary>
+        /// <param name="dir"></param>
+        /// <param name="foldersInDir"></param>
+        /// <returns></returns>
         public static bool ListDirectories(string dir, out IEnumerable<string> foldersInDir)
         {
-            // Get every directory from directory
             Logger.Write(string.Format("Going to check {0} for directories.", dir), Severity.DEBUG);
             try
             {
@@ -29,9 +37,15 @@ namespace LangTools
             return true;
         }
 
+        /// <summary>
+        /// Provides IEnumerable of file names in the given directory.
+        /// </summary>
+        /// <param name="dir"></param>
+        /// <param name="filesInDir"></param>
+        /// <param name="filter"></param>
+        /// <returns></returns>
         public static bool ListFiles(string dir, out IEnumerable<string> filesInDir, string filter="*.txt")
         {
-            // Get every file name from directory
             Logger.Write(string.Format("Going to check {0} for files.", dir), Severity.DEBUG);
             try
             {
@@ -47,6 +61,12 @@ namespace LangTools
             return true;
         }
 
+        /// <summary>
+        /// Provides the text contents of the file.
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="content"></param>
+        /// <returns></returns>
         public static bool ReadAllText(string filePath, out string content)
         {
             Logger.Write(string.Format("Reading from {0}", filePath), Severity.DEBUG);
@@ -63,6 +83,12 @@ namespace LangTools
             }
         }
 
+        /// <summary>
+        /// Saves the content to the file.
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="content"></param>
+        /// <returns></returns>
         public static bool SaveFile(string filePath, string content)
         {
             Logger.Write(string.Format("Saving to {0}", filePath), Severity.DEBUG);
@@ -78,6 +104,12 @@ namespace LangTools
             }
         }
 
+        /// <summary>
+        /// Appends the string to the file.
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="content"></param>
+        /// <returns></returns>
         public static bool AppendToFile(string filePath, string content)
         {
             Logger.Write(string.Format("Appending {0} to {1}", content, filePath), Severity.DEBUG);
@@ -93,6 +125,10 @@ namespace LangTools
             }
         }
 
+        /// <summary>
+        /// Opens the file in the associated application.
+        /// </summary>
+        /// <param name="fileName"></param>
         public static void OpenWithDefault(string fileName)
         {
             try
@@ -105,6 +141,10 @@ namespace LangTools
             }
         }
 
+        /// <summary>
+        /// Deletes the file.
+        /// </summary>
+        /// <param name="fileName"></param>
         public static void DeleteFile(string fileName)
         {
             MessageBoxResult result = MessageBox.Show(
@@ -126,12 +166,18 @@ namespace LangTools
         }
     }
 
+    /// <summary>
+    /// Level of logging severity.
+    /// </summary>
     enum Severity
     {
         DEBUG,
         RELEASE
     }
 
+    /// <summary>
+    /// Simple Logger class.
+    /// </summary>
     static class Logger
     {
         public static string ConfigFile { get; set; }
