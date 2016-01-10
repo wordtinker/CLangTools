@@ -2,6 +2,9 @@
 
 namespace LangTools.ViewModels
 {
+    /// <summary>
+    /// Represents dictionary file.
+    /// </summary>
     class DictViewModel
     {
         // Members

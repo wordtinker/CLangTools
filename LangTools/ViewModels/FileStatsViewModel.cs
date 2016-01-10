@@ -3,6 +3,9 @@ using MicroMvvm;
 
 namespace LangTools.ViewModels
 {
+    /// <summary>
+    /// Represents statistical data of the text file.
+    /// </summary>
     class FileStatsViewModel : ObservableObject
     {
         private FileStats fileStats;
@@ -81,6 +84,7 @@ namespace LangTools.ViewModels
             IOTools.DeleteFile(OutPath);
         }
 
+        // Equals implementation
         public override bool Equals(object obj)
         {
             FileStatsViewModel item = obj as FileStatsViewModel;

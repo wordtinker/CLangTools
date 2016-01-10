@@ -13,12 +13,12 @@ namespace LangTools.ViewModels
     {
         // Members
         private MainModel model = new MainModel();
-        private int totalWords;
-        private int totalUnknown;
+        private int totalWords; // total words in the project files
+        private int totalUnknown; // unknown words in the project files
         private string log;
         private int progressValue;
-        private bool projectSelectable = true;
-        private FileStatsViewModel currentFile;
+        private bool projectSelectable = true; // switch letting choose another project
+        private FileStatsViewModel currentFile; // currently selected file
 
         // Properties
         public ObservableCollection<LingvaViewModel> Languages { get; }
@@ -109,12 +109,19 @@ namespace LangTools.ViewModels
         }
 
         // Methods
+        /// <summary>
+        /// Prepares modelView for new language.
+        /// </summary>
         public void LanguageIsAboutToChange()
         {
             Logger.Write("Language is about to change.", Severity.DEBUG);
             model.UnselectLanguage();
         }
 
+        /// <summary>
+        /// Changes state of viewModel according to selected language.
+        /// </summary>
+        /// <param name="item"></param>
         public void SelectLanguage(object item)
         {
             Logger.Write("Language is selected.", Severity.DEBUG);
@@ -123,14 +130,22 @@ namespace LangTools.ViewModels
             model.SelectLanguage(lang.CurrentLanguage);
         }
 
+        /// <summary>
+        /// Prepares viewModel for new project.
+        /// </summary>
         public void ProjectIsAboutToChange()
         {
             Logger.Write("Project is about to change.", Severity.DEBUG);
             model.UnselectProject();
+            // Clear log and list of unknown words
             Log = "";
             WordsInProject.Clear();
         }
 
+        /// <summary>
+        /// Changes state of viewmodel according to selected project.
+        /// </summary>
+        /// <param name="item"></param>
         public void SelectProject(object item)
         {
             Logger.Write("Project is selected.", Severity.DEBUG);
@@ -141,13 +156,22 @@ namespace LangTools.ViewModels
             ShowWordsForProject();
         }
 
+        /// <summary>
+        /// Adds new language to viewmodel and model.
+        /// </summary>
+        /// <param name="languageViewModel"></param>
         public void AddNewLanguage(LingvaViewModel languageViewModel)
         {
             Logger.Write("Adding new language.", Severity.DEBUG);
+            // Use copy constructor.
             Lingva lang = new Lingva(languageViewModel.CurrentLanguage);
             model.AddNewLanguage(lang);
         }
 
+        /// <summary>
+        /// Removes language from viewModel and model.
+        /// </summary>
+        /// <param name="languageViewModel"></param>
         public void RemoveLanguage(LingvaViewModel languageViewModel)
         {
             Lingva lang = languageViewModel.CurrentLanguage;
@@ -156,9 +180,15 @@ namespace LangTools.ViewModels
             model.RemoveOldLanguage(lang);
         }
 
+        /// <summary>
+        /// Starts the analysis of the project files.
+        /// </summary>
+        /// <returns></returns>
         private async Task HandleAnalysis()
         {
+            // Prevent changing of the project.
             ProjectSelectable = false;
+            // Clear old project data.
             Words.Clear();
             WordsInProject.Clear();
             //// Callback function to react on the progress
@@ -198,17 +228,27 @@ namespace LangTools.ViewModels
             ShowWordsForProject();
         }
 
+        /// <summary>
+        /// Recalculates the stats of the whole project.
+        /// </summary>
         private void UpdateTotalStats()
         {
             totalUnknown = Files.Sum(x => x.Unknown.GetValueOrDefault());
             TotalWords = Files.Sum(x => x.Size.GetValueOrDefault());
         }
 
+        /// <summary>
+        /// Prepares viewModel for new file selection.
+        /// </summary>
         public void FileRowIsAboutToChange()
         {
             Words.Clear();
         }
 
+        /// <summary>
+        /// Fills the Words table with words.
+        /// </summary>
+        /// <param name="fileStatsVM"></param>
         public void ShowWords(FileStatsViewModel fileStatsVM)
         {
             currentFile = fileStatsVM;
@@ -219,6 +259,9 @@ namespace LangTools.ViewModels
             }
         }
 
+        /// <summary>
+        /// Fills the words table for the whole project.
+        /// </summary>
         private void ShowWordsForProject()
         {
             foreach (var item in model.GetUnknownWords())
@@ -227,6 +270,10 @@ namespace LangTools.ViewModels
             }
         }
 
+        /// <summary>
+        /// Adds one word into ditionary file.
+        /// </summary>
+        /// <param name="word"></param>
         public void AddWordToDictionary(WordViewModel word)
         {
             model.AddWordToDictionary(word.Word);

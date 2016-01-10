@@ -7,10 +7,14 @@ using System.Windows.Input;
 
 namespace LangTools.ViewModels
 {
+    /// <summary>
+    /// Represents language.
+    /// </summary>
     class LingvaViewModel : ObservableObject, IDataErrorInfo
     {
         // Members
         private readonly Lingva currentLanguage;
+        // Used for IDataErrorInfo
         private Dictionary<string, bool> validProperties = new Dictionary<string, bool>();
         private bool allPropertiesValid = false;
 

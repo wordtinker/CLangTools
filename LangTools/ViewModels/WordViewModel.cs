@@ -1,6 +1,9 @@
 ﻿
 namespace LangTools.ViewModels
 {
+    /// <summary>
+    /// Represents one word.
+    /// </summary>
     class WordViewModel
     {
         public string Word { get; set; }
