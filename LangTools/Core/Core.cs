@@ -8,6 +8,9 @@ using System.Web.Script.Serialization;
 
 namespace LangTools.Core
 {
+    /// <summary>
+    /// Holds data for a single analyzed file.
+    /// </summary>
     class Report
     {
         public readonly List<Token> Tokens;
@@ -28,6 +31,9 @@ namespace LangTools.Core
         }
     }
 
+    /// <summary>
+    /// Class that binds file IO and Lexer class.
+    /// </summary>
     class Analyzer
     {
         private IEnumerable<string> dictPathes;
@@ -83,14 +89,23 @@ namespace LangTools.Core
         }
     }
 
+    /// <summary>
+    /// Transfroms the text into list of marked tokens.
+    /// </summary>
     class Lexer
     {
+        /// <summary>
+        /// Shows if the word came from dictionary or was expanded by rules.
+        /// </summary>
         private enum Source
         {
             ORIGINAL,
             EXPANDED
         }
 
+        /// <summary>
+        /// Language rules for extending words. 
+        /// </summary>
         private class Plugin
         {
             public Dictionary<string, Dictionary<string, string[]>> Patterns { get; set; }
@@ -106,12 +121,20 @@ namespace LangTools.Core
         private int knownWordsCount;
         private int maybeWordsCount;
 
+        /// <summary>
+        /// Loads json plugin for selected language.
+        /// </summary>
+        /// <param name="jsonPlugin"></param>
         public void LoadPlugin(string jsonPlugin)
         {
             JavaScriptSerializer serializer = new JavaScriptSerializer();
             plug = serializer.Deserialize<Plugin>(jsonPlugin);
         }
 
+        /// <summary>
+        /// Loads dictionary. Could be called several times safely.
+        /// </summary>
+        /// <param name="content"></param>
         public void LoadDictionary(string content)
         {
             content = content.ToLower();
@@ -124,6 +147,10 @@ namespace LangTools.Core
             }
         }
 
+        /// <summary>
+        /// Applies the transfromations rules from plugin to
+        /// expand the dictionary.
+        /// </summary>
         public void ExpandDictionary()
         {
             // Sort pattern levels
@@ -168,6 +195,11 @@ namespace LangTools.Core
             }
         }
 
+        /// <summary>
+        /// Turns the text into list of marked tokens and produces stat report.
+        /// </summary>
+        /// <param name="content"></param>
+        /// <returns></returns>
         public Report AnalyzeText(string content)
         {
             // Reset text counters
@@ -184,6 +216,10 @@ namespace LangTools.Core
                 );
         }
 
+        /// <summary>
+        /// Does an analysis of single token.
+        /// </summary>
+        /// <param name="token"></param>
         private void AnalyzeToken(Token token)
         {
             if (token.Type == TokenType.WORD)
@@ -216,6 +252,12 @@ namespace LangTools.Core
             }
         }
 
+        /// <summary>
+        /// Strips the word of all possible prefixes and
+        /// checks if the stem is in the dictionary.
+        /// </summary>
+        /// <param name="word"></param>
+        /// <returns></returns>
         private bool IsExpandable(string word)
         {
             foreach (string prefix in plug.Prefixes)
@@ -229,6 +271,11 @@ namespace LangTools.Core
             return false;
         }
 
+        /// <summary>
+        /// Utility function that safely adds the word
+        /// into dictionary.
+        /// </summary>
+        /// <param name="word"></param>
         private void AddToUnkownDict(string word)
         {
             if (unknownWords.ContainsKey(word))
@@ -304,12 +351,18 @@ namespace LangTools.Core
         }
     }
 
+    /// <summary>
+    /// Word token type.
+    /// </summary>
     enum TokenType
     {
         WORD,
         NONWORD
     }
 
+    /// <summary>
+    /// Word token knowledge type.
+    /// </summary>
     enum Klass
     {
         KNOWN,
@@ -317,6 +370,9 @@ namespace LangTools.Core
         UNKNOWN
     }
 
+    /// <summary>
+    /// Word token.
+    /// </summary>
     class Token
     {
         public string Word { get; set; }

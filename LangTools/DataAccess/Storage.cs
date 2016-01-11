@@ -190,6 +190,11 @@ namespace LangTools.DataAccess
             return projects;
         }
 
+        /// <summary>
+        /// Removes the project from DB.
+        /// </summary>
+        /// <param name="language"></param>
+        /// <param name="project"></param>
         public void RemoveProject(Lingva language, string project)
         {
             SQLiteParameter langParam = new SQLiteParameter("@lang");
@@ -209,6 +214,12 @@ namespace LangTools.DataAccess
             }
         }
 
+        /// <summary>
+        /// Returns list of fileStats for given language and project.
+        /// </summary>
+        /// <param name="language"></param>
+        /// <param name="project"></param>
+        /// <returns></returns>
         public List<FileStats> GetFilesStats(Lingva language, string project)
         {
             SQLiteParameter langParam = new SQLiteParameter("@lang");
@@ -262,11 +273,18 @@ namespace LangTools.DataAccess
             }
         }
 
+        /// <summary>
+        /// Adds new stats into pending to DB state.
+        /// </summary>
+        /// <param name="stats"></param>
         public void UpdateStats(FileStats stats)
         {
             statList.Add(stats);
         }
 
+        /// <summary>
+        /// Takes all pending stats and commits to DB.
+        /// </summary>
         public void CommitStats()
         {
             string sql = "INSERT OR REPLACE INTO Files " +
@@ -334,6 +352,9 @@ namespace LangTools.DataAccess
             wordList.Add(filePath, unknownWords);
         }
 
+        /// <summary>
+        /// Takes all pending unkown words and insets into DB.
+        /// </summary>
         public void CommitWords()
         {
             using (SQLiteCommand cmd = new SQLiteCommand(dbConn))
@@ -403,8 +424,15 @@ namespace LangTools.DataAccess
             return words;
         }
 
+        /// <summary>
+        /// Provides the list of unknown words and quantities for given
+        /// project.
+        /// </summary>
+        /// <param name="project"></param>
+        /// <returns></returns>
         public Dictionary<string, int> GetUnknownWords(string project)
         {
+            // TODO: check bug? same projest for diff languages?
             Dictionary<string, int> words = new Dictionary<string, int>();
 
             SQLiteParameter projectParam = new SQLiteParameter("@project");

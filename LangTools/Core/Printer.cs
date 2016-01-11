@@ -5,6 +5,9 @@ using System.Text;
 
 namespace LangTools.Core
 {
+    /// <summary>
+    /// Manages the printing of the output page.
+    /// </summary>
     class Printer
     {
         private HTMLPrinter printer = new HTMLPrinter();
@@ -33,6 +36,9 @@ namespace LangTools.Core
         }
     }
 
+    /// <summary>
+    /// Transfroms word tokens into valid HTML page.
+    /// </summary>
     class HTMLPrinter
     {
         private class Wrapper : IEnumerable<string>
