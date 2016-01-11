@@ -63,6 +63,10 @@ namespace LangTools.Models
             InitializeWatchers();
         }
 
+        /// <summary>
+        /// Initialize various file wathcers that
+        /// are used for project files tracking.
+        /// </summary>
         private void InitializeWatchers()
         {
             // Corpus Watcher
@@ -205,6 +209,9 @@ namespace LangTools.Models
                 ));
         }
 
+        /// <summary>
+        /// Request languages from DB.
+        /// </summary>
         public void InitializeLanguages()
         {
             foreach (Lingva lang in storage.GetLanguages())
@@ -328,6 +335,9 @@ namespace LangTools.Models
 
         // Methods
 
+        /// <summary>
+        /// Stops previously selected language from being watched.
+        /// </summary>
         public void UnselectLanguage()
         {
             currentLanguage = null;
@@ -341,6 +351,10 @@ namespace LangTools.Models
             };
         }
 
+        /// <summary>
+        /// Sets new language as current.
+        /// </summary>
+        /// <param name="lang"></param>
         public void SelectLanguage(Lingva lang)
         {
             Logger.Write("New language is chosen.", Severity.DEBUG);
@@ -365,6 +379,11 @@ namespace LangTools.Models
             }
         }
 
+        /// <summary>
+        /// Removes leftover projects from DB.
+        /// </summary>
+        /// <param name="projectsInDir"></param>
+        /// <param name="selectedLang"></param>
         private void RemoveOldProjects(IEnumerable<string> projectsInDir, Lingva selectedLang)
         {
             // Get known projects from DB
@@ -378,6 +397,9 @@ namespace LangTools.Models
             }
         }
 
+        /// <summary>
+        /// Stops previously selected project from being watched.
+        /// </summary>
         public void UnselectProject()
         {
             currentProject = null;
@@ -398,6 +420,10 @@ namespace LangTools.Models
             }
         }
 
+        /// <summary>
+        /// Sets new project as current.
+        /// </summary>
+        /// <param name="project"></param>
         public void SelectProject(string project)
         {
             // language might be null during the proccess
@@ -495,6 +521,10 @@ namespace LangTools.Models
             }
         }
 
+        /// <summary>
+        /// Adds new language to DB and model.
+        /// </summary>
+        /// <param name="newLang"></param>
         public void AddNewLanguage(Lingva newLang)
         {
             // Add new language to DB.
@@ -503,6 +533,10 @@ namespace LangTools.Models
             AddLanguage(newLang);
         }
 
+        /// <summary>
+        /// Removes language from DB and model.
+        /// </summary>
+        /// <param name="language"></param>
         public void RemoveOldLanguage(Lingva language)
         {
             // Remove old language from DB
@@ -510,6 +544,10 @@ namespace LangTools.Models
             RemoveLanguage(language);
         }
 
+        /// <summary>
+        /// Creates folder structer for the language.
+        /// </summary>
+        /// <param name="directory"></param>
         private void EnsureCorpusStructure(string directory)
         {
             // Define subfolders names
@@ -532,6 +570,10 @@ namespace LangTools.Models
             }
         }
 
+        /// <summary>
+        /// Makes analysis of the project files.
+        /// </summary>
+        /// <param name="progress"></param>
         public void Analyze(IProgress<AnalysisProgress> progress)
         {
             if (currentProject == null || currentLanguage == null || files.Count == 0 || dicts.Count == 0)
@@ -594,6 +636,11 @@ namespace LangTools.Models
             specDictWatcher.EnableRaisingEvents = true;
         }
 
+        /// <summary>
+        /// Creates folder structure for the project.
+        /// </summary>
+        /// <param name="langPath"></param>
+        /// <param name="project"></param>
         private void EnsureProjectStructure(string langPath, string project)
         {
             string projectDictDir =
@@ -615,11 +662,20 @@ namespace LangTools.Models
             }
         }
 
+        /// <summary>
+        /// Provides a dictionary with unknown words.
+        /// </summary>
+        /// <param name="fs"></param>
+        /// <returns></returns>
         public Dictionary<string, int> GetUnknownWords(FileStats fs)
         {
             return storage.GetUnknownWords(fs);
         }
 
+        /// <summary>
+        /// Provides a dictionary with unknown words for whole project.
+        /// </summary>
+        /// <returns></returns>
         public Dictionary<string, int> GetUnknownWords()
         {
             if (currentProject != null)
@@ -630,6 +686,10 @@ namespace LangTools.Models
             return new Dictionary<string, int>();
         }
 
+        /// <summary>
+        /// Appends the word to common dictionary.
+        /// </summary>
+        /// <param name="word"></param>
         public void AddWordToDictionary(string word)
         {
             string filePath = Path.Combine(
