@@ -290,10 +290,11 @@ namespace LangTools.DataAccess
             string sql = "INSERT OR REPLACE INTO Files " +
                 "VALUES(@name, @path, @lang, @project, @size, @known, @maybe, @unknown)";
 
-            using (SQLiteCommand cmd = new SQLiteCommand(sql, dbConn))
+            using (SQLiteTransaction transaction = dbConn.BeginTransaction())
             {
-                using (SQLiteTransaction transaction = dbConn.BeginTransaction())
+                using (SQLiteCommand cmd = dbConn.CreateCommand())
                 {
+                    cmd.CommandText = sql;
                     foreach (FileStats stats in statList)
                     {
                         SQLiteParameter param = new SQLiteParameter("@name");
@@ -334,9 +335,10 @@ namespace LangTools.DataAccess
 
                         cmd.ExecuteNonQuery();
                     }
-                    transaction.Commit();
                 }
+                transaction.Commit();
             }
+
             statList.Clear();
             GC.Collect();
         }
@@ -357,26 +359,21 @@ namespace LangTools.DataAccess
         /// </summary>
         public void CommitWords()
         {
-            using (SQLiteCommand cmd = new SQLiteCommand(dbConn))
+            using (SQLiteTransaction transaction = dbConn.BeginTransaction())
             {
-                using (SQLiteTransaction transaction = dbConn.BeginTransaction())
+                string command = "INSERT INTO Words VALUES(@word, @file, @quantity)";
+                foreach (string filePath in wordList.Keys)
                 {
-                    foreach (string filePath in wordList.Keys)
-                    {
-                        SQLiteParameter pathParam = new SQLiteParameter("@file");
-                        pathParam.Value = filePath;
-                        pathParam.DbType = System.Data.DbType.String;
-                        // Delete all words from previous analysis
-                        cmd.CommandText = "DELETE FROM Words WHERE file=@file";
-                        cmd.Parameters.Add(pathParam);
-                        cmd.ExecuteNonQuery();
+                    SQLiteParameter pathParam = new SQLiteParameter("@file");
+                    pathParam.Value = filePath;
+                    pathParam.DbType = System.Data.DbType.String;
 
-                        string command = "INSERT INTO Words VALUES(@word, @file, @quantity)";
+                    using (SQLiteCommand cmd = new SQLiteCommand(dbConn))
+                    {
+                        cmd.CommandText = command;
+                        cmd.Parameters.Add(pathParam);
                         foreach (var item in wordList[filePath])
                         {
-                            cmd.CommandText = command;
-                            cmd.Parameters.Add(pathParam);
-
                             SQLiteParameter param = new SQLiteParameter("@word");
                             param.Value = item.Key;
                             pathParam.DbType = System.Data.DbType.String;
@@ -389,11 +386,27 @@ namespace LangTools.DataAccess
                             cmd.ExecuteNonQuery();
                         }
                     }
-                    transaction.Commit();
                 }
+                transaction.Commit();
             }
             wordList.Clear();
             GC.Collect();
+        }
+
+        public void RemoveProjectStats(Lingva lang, string project)
+        {
+            using (SQLiteCommand cmd = new SQLiteCommand(dbConn))
+            {
+                // Delete all stats from previous analysis
+                // words will be deleted on cascade
+                // cmd.CommandText = "DELETE FROM Words WHERE file IN " +
+                // "(SELECT path FROM Files WHERE lang=@lang AND project=@prj)";
+                // just for reference
+                cmd.CommandText = "DELETE FROM Files WHERE lang=@lang AND project=@prj";
+                cmd.Parameters.AddWithValue("lang", lang.Language);
+                cmd.Parameters.AddWithValue("prj", project);
+                cmd.ExecuteNonQuery();
+            }
         }
 
         /// <summary>

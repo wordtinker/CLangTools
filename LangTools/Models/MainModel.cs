@@ -593,6 +593,9 @@ namespace LangTools.Models
             //  are misssing on first run.
             EnsureProjectStructure(currentLanguage.Folder, currentProject);
 
+            // Remove old stats and words for project from DB.
+            storage.RemoveProjectStats(currentLanguage, currentProject);
+
             //// Create object that handles analysis.
             Analyzer worker = new Analyzer(currentLanguage.Language);
             worker.AddDictionaries(dicts.Select(d => d.FilePath));
@@ -615,11 +618,11 @@ namespace LangTools.Models
                         // Produce new output page
                         printer.Print(file.FileName, file.Project,
                             currentLanguage.Folder, item.Tokens);
-                        // Update stats in the DB
-                        storage.UpdateStats(file);
-                        // Add new word list to DB
-                        storage.UpdateWords(file.FilePath, item.UnknownWords);
                     }
+                    // Update stats in the DB
+                    storage.UpdateStats(file);
+                    // Add new word list to DB
+                    storage.UpdateWords(file.FilePath, item.UnknownWords);
                 }
                 progress.Report(new AnalysisProgress(
                     percentValue,
