@@ -46,8 +46,10 @@ namespace LangTools.DataAccess
                 cmd.ExecuteNonQuery();
             }
 
+            // No ON DELETE CASCADE for file external key
+            // deletion of single file will be too slow.
             sql = "CREATE TABLE IF NOT EXISTS Words(" +
-                "word TEXT, file TEXT REFERENCES Files(path) ON DELETE CASCADE, quantity INTEGER)";
+                "word TEXT, file TEXT, quantity INTEGER)";
             using (SQLiteCommand cmd = new SQLiteCommand(sql, dbConn))
             {
                 cmd.ExecuteNonQuery();
@@ -156,10 +158,15 @@ namespace LangTools.DataAccess
             param.Value = language.Language;
             param.DbType = System.Data.DbType.String;
 
-            string sql = "DELETE FROM Languages WHERE lang=@lang";
-            using (SQLiteCommand cmd = new SQLiteCommand(sql, dbConn))
+            using (SQLiteCommand cmd = new SQLiteCommand(dbConn))
             {
                 cmd.Parameters.Add(param);
+                // Delete all words from previous analysis.
+                cmd.CommandText = "DELETE FROM Words WHERE file IN " +
+                    "(SELECT path FROM Files WHERE lang=@lang)";
+                cmd.ExecuteNonQuery();
+                // Delete language and files.
+                cmd.CommandText = "DELETE FROM Languages WHERE lang=@lang";
                 cmd.ExecuteNonQuery();
             }
         }
@@ -205,11 +212,16 @@ namespace LangTools.DataAccess
             projectParam.Value = project;
             projectParam.DbType = System.Data.DbType.String;
 
-            string sql = "DELETE FROM Files WHERE lang=@lang AND project=@project";
-            using (SQLiteCommand cmd = new SQLiteCommand(sql, dbConn))
+            using (SQLiteCommand cmd = new SQLiteCommand(dbConn))
             {
                 cmd.Parameters.Add(langParam);
                 cmd.Parameters.Add(projectParam);
+                // Delete all words from previous analysis.
+                cmd.CommandText = "DELETE FROM Words WHERE file IN " +
+                    "(SELECT path FROM Files WHERE lang=@lang AND project=@project)";
+                cmd.ExecuteNonQuery();
+                // Delete all stats from previous analysis
+                cmd.CommandText = "DELETE FROM Files WHERE lang=@lang AND project=@project";
                 cmd.ExecuteNonQuery();
             }
         }
@@ -265,10 +277,15 @@ namespace LangTools.DataAccess
             SQLiteParameter path = new SQLiteParameter("@path");
             path.Value = file.FilePath;
             path.DbType = System.Data.DbType.String;
-            string sql = "DELETE FROM Files WHERE path=@path";
-            using (SQLiteCommand cmd = new SQLiteCommand(sql, dbConn))
+            
+            using (SQLiteCommand cmd = new SQLiteCommand(dbConn))
             {
                 cmd.Parameters.Add(path);
+                // Remove words related to file.
+                cmd.CommandText = "DELETE FROM Words WHERE file=@path";
+                cmd.ExecuteNonQuery();
+                // Remove the stats for file
+                cmd.CommandText = "DELETE FROM Files WHERE path=@path";
                 cmd.ExecuteNonQuery();
             }
         }
@@ -355,7 +372,7 @@ namespace LangTools.DataAccess
         }
 
         /// <summary>
-        /// Takes all pending unkown words and insets into DB.
+        /// Takes all pending unknown words and insets into DB.
         /// </summary>
         public void CommitWords()
         {
@@ -391,22 +408,6 @@ namespace LangTools.DataAccess
             }
             wordList.Clear();
             GC.Collect();
-        }
-
-        public void RemoveProjectStats(Lingva lang, string project)
-        {
-            using (SQLiteCommand cmd = new SQLiteCommand(dbConn))
-            {
-                // Delete all stats from previous analysis
-                // words will be deleted on cascade
-                // cmd.CommandText = "DELETE FROM Words WHERE file IN " +
-                // "(SELECT path FROM Files WHERE lang=@lang AND project=@prj)";
-                // just for reference
-                cmd.CommandText = "DELETE FROM Files WHERE lang=@lang AND project=@prj";
-                cmd.Parameters.AddWithValue("lang", lang.Language);
-                cmd.Parameters.AddWithValue("prj", project);
-                cmd.ExecuteNonQuery();
-            }
         }
 
         /// <summary>

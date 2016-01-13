@@ -594,7 +594,7 @@ namespace LangTools.Models
             EnsureProjectStructure(currentLanguage.Folder, currentProject);
 
             // Remove old stats and words for project from DB.
-            storage.RemoveProjectStats(currentLanguage, currentProject);
+            storage.RemoveProject(currentLanguage, currentProject);
 
             //// Create object that handles analysis.
             Analyzer worker = new Analyzer(currentLanguage.Language);
