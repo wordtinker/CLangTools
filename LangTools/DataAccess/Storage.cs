@@ -444,21 +444,26 @@ namespace LangTools.DataAccess
         /// </summary>
         /// <param name="project"></param>
         /// <returns></returns>
-        public Dictionary<string, int> GetUnknownWords(string project)
+        public Dictionary<string, int> GetUnknownWords(Lingva lang, string project)
         {
-            // TODO: check bug? same projest for diff languages?
             Dictionary<string, int> words = new Dictionary<string, int>();
 
             SQLiteParameter projectParam = new SQLiteParameter("@project");
             projectParam.Value = project;
             projectParam.DbType = System.Data.DbType.String;
+
+            SQLiteParameter langParam = new SQLiteParameter("@lang");
+            langParam.Value = lang.Language;
+            langParam.DbType = System.Data.DbType.String;
+
             string sql = "SELECT word, SUM(quantity) as sum " +
                 "FROM Words JOIN Files on Words.file = Files.path " +
-                "WHERE project=@project " +
+                "WHERE project=@project AND lang=@lang " +
                 "GROUP BY word ORDER BY sum DESC LIMIT 100";
             using (SQLiteCommand cmd = new SQLiteCommand(sql, dbConn))
             {
                 cmd.Parameters.Add(projectParam);
+                cmd.Parameters.Add(langParam);
                 SQLiteDataReader dr = cmd.ExecuteReader();
                 while (dr.Read())
                 {

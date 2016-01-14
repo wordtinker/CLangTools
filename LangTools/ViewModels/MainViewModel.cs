@@ -186,6 +186,7 @@ namespace LangTools.ViewModels
         /// <returns></returns>
         private async Task HandleAnalysis()
         {
+            // TODO: BUG: if project and lang are empty.
             // Prevent changing of the project.
             ProjectSelectable = false;
             // Clear old project data.

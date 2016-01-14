@@ -430,7 +430,6 @@ namespace LangTools.Models
             // of changing language.
             if (currentLanguage == null) return;
 
-            // TODO Later refactor
             Logger.Write("New project is chosen.", Severity.DEBUG);
             currentProject = project;
             // Get custom project dictionaries
@@ -681,9 +680,9 @@ namespace LangTools.Models
         /// <returns></returns>
         public Dictionary<string, int> GetUnknownWords()
         {
-            if (currentProject != null)
+            if (currentProject != null && currentLanguage != null)
             {
-                return storage.GetUnknownWords(currentProject);
+                return storage.GetUnknownWords(currentLanguage, currentProject);
             }
             
             return new Dictionary<string, int>();

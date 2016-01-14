@@ -19,7 +19,6 @@ namespace LangTools.ViewModels
 
         public DictType DictType
         {
-            // TODO get rid of ENUM
             get { return currentDictionary.DictType; }
         }
 
