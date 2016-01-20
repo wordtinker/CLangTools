@@ -243,6 +243,7 @@ namespace LangTools.ViewModels
         /// </summary>
         public void FileRowIsAboutToChange()
         {
+            currentFile = null;
             Words.Clear();
         }
 
