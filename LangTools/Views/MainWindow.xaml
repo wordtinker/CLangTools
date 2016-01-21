@@ -10,6 +10,12 @@
     <Window.DataContext>
         <localVM:MainViewModel/>
     </Window.DataContext>
+    <Window.Resources>
+        <LinearGradientBrush x:Key="HlBrush" StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Offset="0" Color="White"/>
+            <GradientStop Offset="1" Color="CadetBlue"/>
+        </LinearGradientBrush>
+    </Window.Resources>
     <Border BorderThickness="10,0,10,10">
         <DockPanel Background="#FFF0F0F0">
             <Menu x:Name="menu" DockPanel.Dock="Top" HorizontalAlignment="Left" VerticalAlignment="Top">
@@ -79,7 +85,7 @@
                 </StatusBarItem>
                 <Separator Grid.Column="3" />
                 <StatusBarItem Grid.Column="4" Margin="2">
-                    <ProgressBar Value="{Binding ProgressValue}" Width="240" Height="16" />
+                    <ProgressBar Value="{Binding ProgressValue}" Width="240" Height="16" Foreground="{StaticResource HlBrush}" />
                 </StatusBarItem>
             </StatusBar>
             <Grid DockPanel.Dock="Bottom">
@@ -116,6 +122,11 @@
                         <DataGrid.Resources>
                             <Style TargetType="DataGridRow">
                                 <EventSetter Event="MouseDoubleClick" Handler="FilesRow_DoubleClick"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Highlighted}" Value="true">
+                                        <Setter Property="Background" Value="{StaticResource HlBrush}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
                             </Style>
                         </DataGrid.Resources>
                         <DataGrid.Columns>
@@ -138,6 +149,7 @@
                         <TabControl.Resources>
                             <Style TargetType="DataGridRow">
                                 <EventSetter Event="MouseDoubleClick" Handler="WordRow_DoubleClick"/>
+                                <EventSetter Event="MouseLeftButtonUp" Handler="WordRow_SingleClick"/>
                             </Style>
                         </TabControl.Resources>
                         <TabItem Header="Selected File">

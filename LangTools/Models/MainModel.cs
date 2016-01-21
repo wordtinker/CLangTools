@@ -701,5 +701,15 @@ namespace LangTools.Models
             string wordToAppend = string.Format("{0}{1}", word, Environment.NewLine);
             IOTools.AppendToFile(filePath, wordToAppend);
         }
+
+        /// <summary>
+        /// Returns a list with file names.
+        /// </summary>
+        /// <param name="word"></param>
+        /// <returns></returns>
+        public List<string> GetFilenamesWithWord(string word)
+        {
+            return storage.GetFilenamesWithWord(word);
+        }
     }
 }

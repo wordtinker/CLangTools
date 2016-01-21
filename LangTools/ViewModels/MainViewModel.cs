@@ -1,6 +1,7 @@
 ﻿using LangTools.Models;
 using MicroMvvm;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -192,6 +193,7 @@ namespace LangTools.ViewModels
             // Clear old project data.
             Words.Clear();
             WordsInProject.Clear();
+            RemoveHighlighting();
             //// Callback function to react on the progress
             //// during analysis
             Progress<AnalysisProgress> progress = new Progress<AnalysisProgress>(ev =>
@@ -279,6 +281,35 @@ namespace LangTools.ViewModels
         public void AddWordToDictionary(WordViewModel word)
         {
             model.AddWordToDictionary(word.Word);
+        }
+
+        /// <summary>
+        /// Removes highligting from every file.
+        /// </summary>
+        public void RemoveHighlighting()
+        {
+            foreach (FileStatsViewModel file in Files.Where(i => i.Highlighted==true))
+            {
+                file.Highlighted = false;
+            }
+        }
+
+        /// <summary>
+        /// Marks the files that contain the word.
+        /// </summary>
+        /// <param name="word"></param>
+        public void HighlightFilesWithWord(WordViewModel word)
+        {
+            // Remove previously highlighted files
+            RemoveHighlighting();
+            // Request list of file names from model
+            List<string> pathNames = model.GetFilenamesWithWord(word.Word);
+            // Select files to highlight
+            var filesToHighLight = Files.Where(i => pathNames.Contains(i.FilePath));
+            foreach (FileStatsViewModel file in filesToHighLight)
+            {
+                file.Highlighted = true;
+            }
         }
 
         // Commands

@@ -9,6 +9,7 @@ namespace LangTools.ViewModels
     class FileStatsViewModel : ObservableObject
     {
         private FileStats fileStats;
+        private bool highlighted;
 
         public FileStats FileStats { get { return fileStats; } }
         public string FileName { get { return fileStats.FileName; } }
@@ -41,6 +42,15 @@ namespace LangTools.ViewModels
             }
         }
         public string OutPath { get { return fileStats.OutPath; } }
+        public bool Highlighted
+        {
+            get { return highlighted; }
+            set
+            {
+                highlighted = value;
+                RaisePropertyChanged("Highlighted");
+            }
+        }
 
         public FileStatsViewModel(FileStats fileStats)
         {

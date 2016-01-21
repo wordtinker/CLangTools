@@ -229,5 +229,21 @@ namespace LangTools
                 vm.AddWordToDictionary((WordViewModel)item.DataContext);
             }
         }
+
+        /// <summary>
+        /// Responds to MouseDown event in the dataGrid with words.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void WordRow_SingleClick(object sender, MouseButtonEventArgs e)
+        {
+            MainViewModel vm = (MainViewModel)base.DataContext;
+            DataGridRow item = sender as DataGridRow;
+            if (item != null)
+            {
+                // Let view model mark files to highlight.
+                vm.HighlightFilesWithWord((WordViewModel)item.DataContext);
+            }
+        }
     }
 }

@@ -473,5 +473,27 @@ namespace LangTools.DataAccess
             }
             return words;
         }
+
+        /// <summary>
+        /// Provides a list of files that contain given word.
+        /// </summary>
+        /// <param name="word"></param>
+        /// <returns></returns>
+        public List<string> GetFilenamesWithWord(string word)
+        {
+            List<string> names = new List<string>();
+            string sql = "SELECT file FROM Words WHERE word=@word";
+            using (SQLiteCommand cmd = new SQLiteCommand(sql, dbConn))
+            {
+                cmd.Parameters.AddWithValue("word", word);
+                SQLiteDataReader dr = cmd.ExecuteReader();
+                while (dr.Read())
+                {
+                    names.Add(dr.GetString(0));
+                }
+            }
+
+            return names;
+        }
     }
 }
