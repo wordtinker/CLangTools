@@ -317,7 +317,7 @@ namespace LangTools.ViewModels
         {
             get
             {
-                return AsyncRelayCommand.Create(HandleAnalysis);
+                return AsyncRelayCommand.Create(() => HandleAnalysis());
             }
         }
 
