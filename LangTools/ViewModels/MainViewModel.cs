@@ -1,16 +1,16 @@
 ﻿using LangTools.Models;
-using MicroMvvm;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Input;
+using Prism.Mvvm;
+using Prism.Commands;
 
 namespace LangTools.ViewModels
 {
-    class MainViewModel : ObservableObject
+    class MainViewModel : BindableBase
     {
         // Members
         private MainModel model = new MainModel();
@@ -18,7 +18,7 @@ namespace LangTools.ViewModels
         private int totalUnknown; // unknown words in the project files
         private string log;
         private int progressValue;
-        private bool projectSelectable = true; // switch letting choose another project
+        private bool projectSelectable = true; // defines if the user can switch project
         private FileStatsViewModel currentFile; // currently selected file
 
         // Properties
@@ -34,9 +34,10 @@ namespace LangTools.ViewModels
             get { return totalWords; }
             set
             {
-                totalWords = value;
-                RaisePropertyChanged("TotalWords");
-                RaisePropertyChanged("UnknownPercent");
+                if (SetProperty(ref totalWords, value))
+                {
+                    OnPropertyChanged(() => UnknownPercent);
+                }
             }
         }
         public double UnknownPercent
@@ -51,21 +52,17 @@ namespace LangTools.ViewModels
         public string Log
         {
             get { return log; }
-            set { log = value; RaisePropertyChanged("Log"); }
+            set { SetProperty(ref log, value); }
         }
         public int ProgressValue
         {
             get { return progressValue; }
-            set { progressValue = value;  RaisePropertyChanged("ProgressValue"); }
+            set { SetProperty(ref progressValue, value); }
         }
         public bool ProjectSelectable
         {
             get { return projectSelectable; }
-            set
-            {
-                projectSelectable = value;
-                RaisePropertyChanged("ProjectSelectable");
-            }
+            set { SetProperty(ref projectSelectable, value); }
         }
 
         // Constructors
@@ -187,7 +184,6 @@ namespace LangTools.ViewModels
         /// <returns></returns>
         private async Task HandleAnalysis()
         {
-            // TODO: BUG: if project and lang are empty.
             // Prevent changing of the project.
             ProjectSelectable = false;
             // Clear old project data.
@@ -313,37 +309,34 @@ namespace LangTools.ViewModels
         }
 
         // Commands
-        public IAsyncCommand RunProject
+        public DelegateCommand RunProject
         {
             get
             {
-                return AsyncRelayCommand.Create(() => HandleAnalysis());
+                return DelegateCommand
+                    .FromAsyncHandler(() => HandleAnalysis())
+                    .ObservesCanExecute(p => ProjectSelectable);
             }
         }
 
-        public ICommand ShowHelp
+        public DelegateCommand ShowHelp
         {
             get
             {
-                return new RelayCommand(() =>
+                return new DelegateCommand(() =>
                 {
                     MessageBox.Show(string.Format("{0}: {1}",
                         App.Current.Properties["appName"],
                         CoreAssembly.Version), "About");
-                },
-                () => true);
+                });
             }
         }
 
-        public ICommand ExitApp
+        public DelegateCommand ExitApp
         {
             get
             {
-                return new RelayCommand(() =>
-                {
-                    App.Current.Shutdown();
-                },
-                () => true);
+                return new DelegateCommand(() => App.Current.Shutdown());
             }
         }
     }

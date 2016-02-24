@@ -1,16 +1,16 @@
 ﻿using LangTools.Models;
-using MicroMvvm;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows.Input;
+using Prism.Mvvm;
 
 namespace LangTools.ViewModels
 {
     /// <summary>
     /// Represents language.
     /// </summary>
-    class LingvaViewModel : ObservableObject, IDataErrorInfo
+    class LingvaViewModel : BindableBase, IDataErrorInfo
     {
         // Members
         private readonly Lingva currentLanguage;
@@ -29,7 +29,7 @@ namespace LangTools.ViewModels
                 if (currentLanguage.Language != value)
                 {
                     currentLanguage.Language = value;
-                    RaisePropertyChanged("Language");
+                    OnPropertyChanged();
                 }
             }
         }
@@ -42,7 +42,7 @@ namespace LangTools.ViewModels
                 if(currentLanguage.Folder != value)
                 {
                     currentLanguage.Folder = value;
-                    RaisePropertyChanged("Folder");
+                    OnPropertyChanged();
                 }
             }
         }
@@ -55,7 +55,7 @@ namespace LangTools.ViewModels
                 if (allPropertiesValid != value)
                 {
                     allPropertiesValid = value;
-                    RaisePropertyChanged("AllPropertiesValid");
+                    OnPropertyChanged();
                 }
             }
         }

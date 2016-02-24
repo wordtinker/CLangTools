@@ -1,9 +1,9 @@
 ﻿using System.IO;
-using MicroMvvm;
+using Prism.Mvvm;
 
 namespace LangTools.Models
 {
-    class FileStats : ObservableObject
+    class FileStats : BindableBase
     {
         // Members
         private string fileName;
@@ -54,7 +54,8 @@ namespace LangTools.Models
                 this.Known = newKnown;
                 this.Maybe = newMaybe;
                 this.Unknown = newSize - newKnown - newMaybe;
-                RaiseAllPropertiesChanged();
+                // Raise All properties changed
+                OnPropertyChanged(string.Empty);
                 return true;
             }
 

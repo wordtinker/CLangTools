@@ -1,12 +1,12 @@
 ﻿using LangTools.Models;
-using MicroMvvm;
+using Prism.Mvvm;
 
 namespace LangTools.ViewModels
 {
     /// <summary>
     /// Represents statistical data of the text file.
     /// </summary>
-    class FileStatsViewModel : ObservableObject
+    class FileStatsViewModel : BindableBase
     {
         private FileStats fileStats;
         private bool highlighted;
@@ -47,8 +47,7 @@ namespace LangTools.ViewModels
             get { return highlighted; }
             set
             {
-                highlighted = value;
-                RaisePropertyChanged("Highlighted");
+                SetProperty(ref highlighted, value);
             }
         }
 
@@ -57,7 +56,8 @@ namespace LangTools.ViewModels
             this.fileStats = fileStats;
             this.fileStats.PropertyChanged += (obj, e) =>
             {
-                RaiseAllPropertiesChanged();
+                // Raise all properties changed
+                OnPropertyChanged(string.Empty);
             };
         }
 

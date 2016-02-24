@@ -1,4 +1,5 @@
 LangTools/bin/
 LangTools/obj/
+LangTools/packages/
 *.user
 *.suo

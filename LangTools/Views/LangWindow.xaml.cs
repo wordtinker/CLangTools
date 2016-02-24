@@ -20,7 +20,6 @@ namespace LangTools
         /// <param name="e"></param>
         private void AddBtn_click(object sender, RoutedEventArgs e)
         {
-            // TODO : BUG : Validate textbox is behaving strange.
             // Pass valid language into MainViewModel
             LingvaViewModel lang = (LingvaViewModel)newLanguage.DataContext;
             ((MainViewModel)base.DataContext).AddNewLanguage(lang);
