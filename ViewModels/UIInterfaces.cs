@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Windows.Threading;
 
 namespace LangTools.ViewModels
 {
@@ -7,7 +6,7 @@ namespace LangTools.ViewModels
     {
         void ShowMessage(string message);
         bool Confirm(string message);
-        DispatcherOperation BeginInvoke(Action method);
+        void BeginInvoke(Action method);
     }
 
     public interface IUIMainWindowService : IUIBaseService

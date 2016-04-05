@@ -7,9 +7,9 @@ namespace LangTools.Views
 {
     class BaseWindowService : IUIBaseService
     {
-        public DispatcherOperation BeginInvoke(Action method)
+        public void BeginInvoke(Action method)
         {
-            return App.Current.Dispatcher.BeginInvoke(
+            App.Current.Dispatcher.BeginInvoke(
                 DispatcherPriority.Send,
                 method
                 );
