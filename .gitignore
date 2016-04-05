@@ -4,9 +4,6 @@ LangTools/packages/
 Core/bin/
 Core/obj/
 Core/packages/
-LangTools/Data/bin/
-LangTools/Data/obj/
-LangTools/Data/packages/
 Shared/bin/
 Shared/obj/
 Shared/packages/
