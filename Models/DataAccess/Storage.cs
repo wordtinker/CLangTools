@@ -1,11 +1,13 @@
 ﻿using LangTools.Models;
+using LangTools.Shared;
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
+using System.IO;
 
-namespace LangTools.DataAccess
+namespace LangTools.Data
 {
-    class Storage
+    public class Storage : IStorage
     {
         // DB connection
         private SQLiteConnection dbConn;
@@ -13,19 +15,46 @@ namespace LangTools.DataAccess
         private Dictionary<string, Dictionary<string, int>> wordList = new Dictionary<string, Dictionary<string, int>>();
         private List<FileStats> statList = new List<FileStats>();
 
-        public Storage(string dbFile)
+        public Storage(string directory)
         {
-            string connString = string.Format("Data Source={0};Version=3;foreign keys=True;", dbFile);
+            string dbFileName = Path.Combine(directory, "lt.db");
+            string connString = string.Format("Data Source={0};Version=3;foreign keys=True;", dbFileName);
             dbConn = new SQLiteConnection(connString);
             dbConn.Open();
             InitializeTables();
-            Logger.Write("DB conn is open.", Severity.DEBUG);
+            Log.Logger.Debug("DB conn is open.");
+        }
+
+        /// <summary>
+        /// Creates DB file if it does not exist.
+        /// </summary>
+        /// <param name="directory"></param>
+        /// <returns></returns>
+        public static bool CreateFile(string directory)
+        {
+            string dbFileName = Path.Combine(directory, "lt.db");
+            if (File.Exists(dbFileName))
+            {
+                return true;
+            }
+            else
+            {
+                try
+                {
+                    SQLiteConnection.CreateFile(dbFileName);
+                    return true;
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            }
         }
 
         public void Close()
         {
             dbConn.Close();
-            Logger.Write("DB conn is closed.", Severity.DEBUG);
+            Log.Logger.Debug("DB conn is closed.");
         }
 
         private void InitializeTables()
@@ -54,52 +83,6 @@ namespace LangTools.DataAccess
             {
                 cmd.ExecuteNonQuery();
             }
-        }
-
-        /// <summary>
-        /// Checks if the language is used in Table Languages.
-        /// </summary>
-        /// <param name="language"></param>
-        /// <returns></returns>
-        public bool LanguageExists(string language)
-        {
-            string sql = "SELECT lang FROM Languages WHERE lang=@lang";
-            using (SQLiteCommand cmd = new SQLiteCommand(sql, dbConn))
-            {
-                SQLiteParameter param = new SQLiteParameter("@lang");
-                param.Value = language;
-                param.DbType = System.Data.DbType.String;
-                cmd.Parameters.Add(param);
-
-                if (cmd.ExecuteScalar() == null) // nothing is found
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        /// <summary>
-        /// Checks if the folder is used in Table Languages.
-        /// </summary>
-        /// <param name="folder"></param>
-        /// <returns></returns>
-        public bool FolderExists(string folder)
-        {
-            string sql = "SELECT lang FROM Languages WHERE directory=@dir";
-            using (SQLiteCommand cmd = new SQLiteCommand(sql, dbConn))
-            {
-                SQLiteParameter param = new SQLiteParameter("@dir");
-                param.Value = folder;
-                param.DbType = System.Data.DbType.String;
-                cmd.Parameters.Add(param);
-
-                if (cmd.ExecuteScalar() == null) // nothing is found
-                {
-                    return false;
-                }
-            }
-            return true;
         }
 
         /// <summary>

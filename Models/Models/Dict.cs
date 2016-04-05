@@ -1,13 +1,13 @@
 ﻿
 namespace LangTools.Models
 {
-    enum DictType
+    public enum DictType
     {
         Project,
         General
     }
 
-    class Dict
+    public class Dict
     {
         // Properties
         public string FileName { get; set; }

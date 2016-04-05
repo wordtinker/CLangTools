@@ -10,7 +10,7 @@ namespace LangTools.ViewModels
     /// <summary>
     /// Represents language.
     /// </summary>
-    class LingvaViewModel : BindableBase, IDataErrorInfo
+    public class LingvaViewModel : BindableBase, IDataErrorInfo
     {
         // Members
         private readonly Lingva currentLanguage;
@@ -147,7 +147,6 @@ namespace LangTools.ViewModels
 
                 validProperties[propertyName] = String.IsNullOrEmpty(error);
                 ValidateProperties();
-                CommandManager.InvalidateRequerySuggested();
                 return error;
             }
         }

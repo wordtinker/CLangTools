@@ -1,14 +1,16 @@
 ﻿using LangTools.Models;
+using LangTools.Shared;
 
 namespace LangTools.ViewModels
 {
     /// <summary>
     /// Represents dictionary file.
     /// </summary>
-    class DictViewModel
+    public class DictViewModel
     {
         // Members
         private readonly Dict currentDictionary;
+        private IUIBaseService windowService;
 
         // Properties
         public string FileName
@@ -28,20 +30,30 @@ namespace LangTools.ViewModels
         }
 
         // Constructors
-        public DictViewModel(Dict dictionary)
+        public DictViewModel(IUIBaseService windowService, Dict dictionary)
         {
+            this.windowService = windowService;
             this.currentDictionary = dictionary;
         }
 
         // Methods
         public void OpenFile()
         {
-            IOTools.OpenWithDefault(FilePath);
+            if (!IOTools.OpenWithDefault(FilePath))
+            {
+                windowService.ShowMessage(string.Format("Can't open {0}.", FilePath));
+            }
         }
 
         public void DeleteFile()
         {
-            IOTools.DeleteFile(FilePath);
+            if (windowService.Confirm(string.Format("Do you want to delete\n {0} ?", FilePath)))
+            {
+                if (!IOTools.DeleteFile(FilePath))
+                {
+                    windowService.ShowMessage(string.Format("Can't delete {0}.", FilePath));
+                }
+            }
         }
 
         // Equals implementation

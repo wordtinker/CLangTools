@@ -3,7 +3,7 @@ using Prism.Mvvm;
 
 namespace LangTools.Models
 {
-    class FileStats : BindableBase
+    public class FileStats : BindableBase
     {
         // Members
         private string fileName;
@@ -28,7 +28,7 @@ namespace LangTools.Models
                 string outName = Path.ChangeExtension(FileName, ".html");
                 string outPath = Path.Combine(
                     Lingva.Folder,
-                    (string)App.Current.Properties["outputDir"],
+                    MainModel.Instance.OutDir,
                     Project,
                     outName);
                 return outPath;

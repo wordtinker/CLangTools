@@ -1,14 +1,14 @@
-﻿using LangTools.Core;
-using LangTools.DataAccess;
+﻿using LangTools.Data;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Windows.Threading;
+using LangTools.Shared;
+using LangTools.Core;
 
 namespace LangTools.Models
 {
-    class TypedEventArgs<T> : EventArgs
+    public class TypedEventArgs<T> : EventArgs
     {
         public readonly T Content;
         public TypedEventArgs(T content)
@@ -17,7 +17,7 @@ namespace LangTools.Models
         }
     }
 
-    class AnalysisProgress
+    public class AnalysisProgress
     {
         public readonly double Percent;
         public readonly string FileName;
@@ -29,12 +29,14 @@ namespace LangTools.Models
         }
     }
 
-    class MainModel
+    public class MainModel
     {
         // Memmbers
         private const string COMMONDICTNAME = "Common.txt";
 
-        private Storage storage = (Storage)App.Current.Properties["storage"];
+        private static MainModel instance;
+
+        private IStorage storage;
 
         private FileSystemWatcher corpusWatcher = new FileSystemWatcher();
         private FileSystemWatcher specDictWatcher = new FileSystemWatcher();
@@ -49,6 +51,24 @@ namespace LangTools.Models
         private Lingva currentLanguage;
         private string currentProject;
 
+        public static MainModel Instance
+        {
+            get
+            {
+                if (instance != null)
+                {
+                    return instance;
+                }
+                else
+                {
+                    throw new NotImplementedException();
+                }
+            }
+        } 
+        public string CorpusDir { get; set; } = "corpus";
+        public string DicDir { get; set; } = "dics";
+        public string OutDir { get; set; } = "output";
+
         public event EventHandler<TypedEventArgs<string>> ProjectAdded;
         public event EventHandler<TypedEventArgs<string>> ProjectRemoved;
         public event EventHandler<TypedEventArgs<Dict>> DictAdded;
@@ -58,8 +78,20 @@ namespace LangTools.Models
         public event EventHandler<TypedEventArgs<Lingva>> LanguageAdded;
         public event EventHandler<TypedEventArgs<Lingva>> LanguageRemoved;
 
-        public MainModel()
+        public static MainModel CreateModel(IStorage storage)
         {
+            if (instance == null)
+            {
+                instance = new MainModel(storage);
+            }
+            
+            return instance;
+        }
+
+        private MainModel(IStorage storage)
+        {
+            // Establish DB Connection
+            this.storage = storage;
             InitializeWatchers();
         }
 
@@ -74,48 +106,30 @@ namespace LangTools.Models
             corpusWatcher.Filter = "*.*";
             // Remark : deleting of old projects from storage is postponed
             // until the next time LanguageChanged is called.
-
-            // Have to use Dispatcher to execute Action in the same thread as ViewModel
-            corpusWatcher.Created += (obj, e) =>  App.Current.Dispatcher.BeginInvoke(
-                DispatcherPriority.Send, new Action(() =>
-                AddProject(e.Name)
-                ));
-
-            corpusWatcher.Deleted += (obj, e) => App.Current.Dispatcher.BeginInvoke(
-                DispatcherPriority.Send, new Action(() =>
-                RemoveProject(e.Name)
-                ));
-
-            corpusWatcher.Renamed += (obj, e) => App.Current.Dispatcher.BeginInvoke(
-                DispatcherPriority.Send, new Action(() =>
+            corpusWatcher.Created += (obj, e) => AddProject(e.Name);
+            corpusWatcher.Deleted += (obj, e) => RemoveProject(e.Name);
+            corpusWatcher.Renamed += (obj, e) =>
                 {
                     RemoveProject(e.OldName);
                     AddProject(e.Name);
-                }
-                ));
+                };
 
             // Project specific dictionaries Watcher
             specDictWatcher.NotifyFilter = NotifyFilters.FileName;
             specDictWatcher.Filter = "*.txt";
-
-            specDictWatcher.Created += (obj, e) => App.Current.Dispatcher.BeginInvoke(
-                DispatcherPriority.Send, new Action(() =>
+            specDictWatcher.Created += (obj, e) =>
                 AddDict(new Dict
                 {
                     FileName = e.Name,
                     DictType = DictType.Project,
                     FilePath = e.FullPath
-                })));
-
-            specDictWatcher.Deleted += (obj, e) => App.Current.Dispatcher.BeginInvoke(
-                DispatcherPriority.Send, new Action(() =>
+                });
+            specDictWatcher.Deleted += (obj, e) =>
                 RemoveDict(new Dict
                 {
                     FilePath = e.FullPath
-                })));
-
-            specDictWatcher.Renamed += (obj, e) => App.Current.Dispatcher.BeginInvoke(
-                DispatcherPriority.Send, new Action(() =>
+                });
+            specDictWatcher.Renamed += (obj, e) =>
                 {
                     AddDict(new Dict
                     {
@@ -127,31 +141,24 @@ namespace LangTools.Models
                     {
                         FilePath = e.OldFullPath
                     });
-                }
-                ));
+                };
 
             // General dictionaries Watcher
             genDictWatcher.NotifyFilter = NotifyFilters.FileName;
             genDictWatcher.Filter = "*.txt";
-
-            genDictWatcher.Created += (obj, e) => App.Current.Dispatcher.BeginInvoke(
-                DispatcherPriority.Send, new Action(() =>
+            genDictWatcher.Created += (obj, e) =>
                 AddDict(new Dict
                 {
                     FileName = e.Name,
                     DictType = DictType.General,
                     FilePath = e.FullPath
-                })));
-
-            genDictWatcher.Deleted += (obj, e) => App.Current.Dispatcher.BeginInvoke(
-                DispatcherPriority.Send, new Action(() =>
+                });
+            genDictWatcher.Deleted += (obj, e) =>
                 RemoveDict(new Dict
                 {
                     FilePath = e.FullPath
-                })));
-
-            genDictWatcher.Renamed += (obj, e) => App.Current.Dispatcher.BeginInvoke(
-                DispatcherPriority.Send, new Action(() =>
+                });
+            genDictWatcher.Renamed += (obj, e) =>
                 {
                     AddDict(new Dict
                     {
@@ -163,35 +170,28 @@ namespace LangTools.Models
                     {
                         FilePath = e.OldFullPath
                     });
-                }
-                ));
+                };
 
             // Files Directory Watcher
             // Remark : deleting of stats for deleted files from storage is postponed
             // until the next time ProjectChanged is called.
             filesWatcher.NotifyFilter = NotifyFilters.FileName;
             filesWatcher.Filter = "*.txt";
-
-            filesWatcher.Created += (obj, e) => App.Current.Dispatcher.BeginInvoke(
-                DispatcherPriority.Send, new Action(() =>
+            filesWatcher.Created += (obj, e) =>
                 AddFileStats(new FileStats(
                     e.Name,
                     e.FullPath,
                     currentLanguage,
                     currentProject
-                    ))));
-
-            filesWatcher.Deleted += (obj, e) => App.Current.Dispatcher.BeginInvoke(
-                DispatcherPriority.Send, new Action(() =>
+                    ));
+            filesWatcher.Deleted += (obj, e) =>
                 RemoveFileStats(new FileStats(
                     e.Name,
                     e.FullPath,
                     currentLanguage,
                     currentProject
-                    ))));
-
-            filesWatcher.Renamed += (obj, e) => App.Current.Dispatcher.BeginInvoke(
-                DispatcherPriority.Send, new Action(() =>
+                    ));
+            filesWatcher.Renamed += (obj, e) =>
                 {
                     AddFileStats(new FileStats(
                         e.Name,
@@ -205,8 +205,7 @@ namespace LangTools.Models
                         currentLanguage,
                         currentProject
                         ));
-                }
-                ));
+                };
         }
 
         /// <summary>
@@ -357,11 +356,12 @@ namespace LangTools.Models
         /// <param name="lang"></param>
         public void SelectLanguage(Lingva lang)
         {
-            Logger.Write("New language is chosen.", Severity.DEBUG);
+            Log.Logger.Debug("New language is chosen.");
             currentLanguage = lang;
             // Determine corpus directory
-            string corpusDir = Path.Combine(currentLanguage.Folder,
-                (string)App.Current.Properties["corpusDir"]);
+            string corpusDir = Path.Combine(
+                currentLanguage.Folder,
+                CorpusDir);
 
             IEnumerable<string> projectsInDir;
             if (IOTools.ListDirectories(corpusDir, out projectsInDir))
@@ -392,7 +392,7 @@ namespace LangTools.Models
             foreach (string leftover in projectsInDB.Except(projectsInDir))
             {
                 // Remove leftover projects
-                Logger.Write(string.Format("Deleting project:{0} - {1}", selectedLang.Language, leftover), Severity.DEBUG);
+                Log.Logger.Debug(string.Format("Deleting project:{0} - {1}", selectedLang.Language, leftover));
                 storage.RemoveProject(selectedLang, leftover);
             }
         }
@@ -430,11 +430,12 @@ namespace LangTools.Models
             // of changing language.
             if (currentLanguage == null) return;
 
-            Logger.Write("New project is chosen.", Severity.DEBUG);
+            Log.Logger.Debug("New project is chosen.");
             currentProject = project;
             // Get custom project dictionaries
             string dictionariesDir = Path.Combine(currentLanguage.Folder,
-                (string)App.Current.Properties["dicDir"], project);
+                DicDir,
+                project);
 
             IEnumerable<string> projectSpecificDics;
             if (IOTools.ListFiles(dictionariesDir, out projectSpecificDics))
@@ -455,8 +456,9 @@ namespace LangTools.Models
             }
 
             // Get general project dictionaries.
-            string generalDir = Path.Combine(currentLanguage.Folder,
-                (string)App.Current.Properties["dicDir"]);
+            string generalDir = Path.Combine(
+                currentLanguage.Folder,
+                DicDir);
             IEnumerable<string> generalDics;
             if (IOTools.ListFiles(generalDir, out generalDics))
             {
@@ -476,8 +478,10 @@ namespace LangTools.Models
             }
 
             // Get file names from project dir
-            string filesDir = Path.Combine(currentLanguage.Folder,
-                (string)App.Current.Properties["corpusDir"], project);
+            string filesDir = Path.Combine(
+                currentLanguage.Folder,
+                CorpusDir,
+                project);
             IEnumerable<string> fileNames;
             if (!IOTools.ListFiles(filesDir, out fileNames))
             {
@@ -515,7 +519,7 @@ namespace LangTools.Models
             // Remove leftover stats from DB.
             foreach (FileStats item in inDB.Except(inDir))
             {
-                Logger.Write(string.Format("Going to remove {0} from DB", item.FileName), Severity.DEBUG);
+                Log.Logger.Debug(string.Format("Going to remove {0} from DB", item.FileName));
                 storage.RemoveFileStats(item);
             }
         }
@@ -550,9 +554,9 @@ namespace LangTools.Models
         private void EnsureCorpusStructure(string directory)
         {
             // Define subfolders names
-            string corpusDir = Path.Combine(directory, (string)App.Current.Properties["corpusDir"]);
-            string dicDir = Path.Combine(directory, (string)App.Current.Properties["dicDir"]);
-            string outputDir = Path.Combine(directory, (string)App.Current.Properties["outputDir"]);
+            string corpusDir = Path.Combine(directory, CorpusDir);
+            string dicDir = Path.Combine(directory, DicDir);
+            string outputDir = Path.Combine(directory, OutDir);
 
             // Create subfolders
             try
@@ -565,7 +569,7 @@ namespace LangTools.Models
             {
                 // Not a critical error, could be fixed later.
                 string msg = string.Format("Something is wrong during subfolder creation: {0}", e.ToString());
-                Logger.Write(msg);
+                Log.Logger.Error(msg);
             }
         }
 
@@ -586,7 +590,7 @@ namespace LangTools.Models
             genDictWatcher.EnableRaisingEvents = false;
             specDictWatcher.EnableRaisingEvents = false;
 
-            Logger.Write("Project analysis has started.", Severity.DEBUG);
+            Log.Logger.Debug("Project analysis has started.");
             progress.Report(new AnalysisProgress(0));
             // Ensure directory structure, dict and output project specific dirs
             //  are misssing on first run.
@@ -646,9 +650,13 @@ namespace LangTools.Models
         private void EnsureProjectStructure(string langPath, string project)
         {
             string projectDictDir =
-                Path.Combine(langPath, (string)App.Current.Properties["dicDir"], project);
+                Path.Combine(langPath,
+                DicDir,
+                project);
             string projectOutDir =
-                Path.Combine(langPath, (string)App.Current.Properties["outputDir"], project);
+                Path.Combine(langPath,
+                OutDir,
+                project);
 
             // Create subfolders
             try
@@ -660,7 +668,7 @@ namespace LangTools.Models
             {
                 // Not a critical error.
                 string msg = string.Format("Something is wrong during subfolder creation: {0}", e.ToString());
-                Logger.Write(msg);
+                Log.Logger.Error(msg);
             }
         }
 
@@ -696,7 +704,7 @@ namespace LangTools.Models
         {
             string filePath = Path.Combine(
                 currentLanguage.Folder,
-                (string)App.Current.Properties["dicDir"],
+                DicDir,
                 currentProject, COMMONDICTNAME);
             string wordToAppend = string.Format("{0}{1}", word, Environment.NewLine);
             IOTools.AppendToFile(filePath, wordToAppend);
@@ -710,6 +718,16 @@ namespace LangTools.Models
         public List<string> GetFilenamesWithWord(string word)
         {
             return storage.GetFilenamesWithWord(word);
+        }
+
+        public bool LanguageExists(string lang)
+        {
+            return languages.Any(l => l.Language == lang);
+        }
+
+        public bool FolderExists(string dir)
+        {
+            return languages.Any(l => l.Folder == dir);
         }
     }
 }

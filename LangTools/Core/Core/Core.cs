@@ -5,13 +5,14 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web.Script.Serialization;
+using LangTools.Shared;
 
 namespace LangTools.Core
 {
     /// <summary>
     /// Holds data for a single analyzed file.
     /// </summary>
-    class Report
+    public class Report
     {
         public readonly List<Token> Tokens;
         public readonly Dictionary<string, int> UnknownWords;
@@ -34,7 +35,7 @@ namespace LangTools.Core
     /// <summary>
     /// Class that binds file IO and Lexer class.
     /// </summary>
-    class Analyzer
+    public class Analyzer
     {
         private IEnumerable<string> dictPathes;
         private Lexer lexer = new Lexer();
@@ -52,7 +53,7 @@ namespace LangTools.Core
 
         public Report AnalyzeFile(string path)
         {
-            Logger.Write(string.Format("Analyzing the file: {0}", path), Severity.DEBUG);
+            Log.Logger.Debug(string.Format("Analyzing the file: {0}", path));
             string content;
             if (IOTools.ReadAllText(path, out content))
             {
@@ -77,7 +78,7 @@ namespace LangTools.Core
             // Load dictionaries
             foreach (string path in dictPathes)
             {
-                Logger.Write(string.Format("Analyzing with: {0}", path), Severity.DEBUG);
+                Log.Logger.Debug(string.Format("Analyzing with: {0}", path));
                 string content;
                 if (IOTools.ReadAllText(path, out content))
                 {
@@ -354,7 +355,7 @@ namespace LangTools.Core
     /// <summary>
     /// Word token type.
     /// </summary>
-    enum TokenType
+    public enum TokenType
     {
         WORD,
         NONWORD
@@ -363,7 +364,7 @@ namespace LangTools.Core
     /// <summary>
     /// Word token knowledge type.
     /// </summary>
-    enum Klass
+    public enum Klass
     {
         KNOWN,
         MAYBE,
@@ -373,7 +374,7 @@ namespace LangTools.Core
     /// <summary>
     /// Word token.
     /// </summary>
-    class Token
+    public class Token
     {
         public string Word { get; set; }
         public TokenType Type { get; set; }

@@ -1,4 +1,6 @@
-﻿using LangTools.ViewModels;
+﻿using LangTools.Shared;
+using LangTools.ViewModels;
+using LangTools.Views;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -10,11 +12,16 @@ namespace LangTools
         // Constructor
         public MainWindow()
         {
-            Logger.Write("Starting MainWindow.", Severity.DEBUG);
+            MainWindowService service = new MainWindowService(this);
+            this.DataContext = new MainViewModel(service);
+
+            Log.Logger.Debug("Starting MainWindow.");
+
             InitializeComponent();
             // Fix the view so some language would be selected;
             languagesBox.SelectedIndex = 0;
-            Logger.Write("MainWindow has started.", Severity.DEBUG);
+
+            Log.Logger.Debug("MainWindow has started.");
         }
 
         /// <summary>
@@ -29,7 +36,7 @@ namespace LangTools
             // Ensure that one of the languages is always selected
             if (languagesBox.SelectedIndex == - 1)
             {
-                Logger.Write("Language box selection is fixed.", Severity.DEBUG);
+                Log.Logger.Debug("Language box selection is fixed.");
                 // if there are no languages to select "set;" will be ignored
                 // and wont raise new SelectionChanged Event.
                 languagesBox.SelectedIndex = 0;
@@ -37,7 +44,7 @@ namespace LangTools
             // Work with valid language
             else
             {
-                Logger.Write("Language box selection changed.", Severity.DEBUG);
+                Log.Logger.Debug("Language box selection changed.");
                 object item = languagesBox.SelectedItem;
                 vm.SelectLanguage(item);
                 projectsBox.SelectedIndex = 0;
@@ -56,7 +63,7 @@ namespace LangTools
             // Ensure that one of the projects is always selected
             if (projectsBox.SelectedIndex == -1)
             {
-                Logger.Write("Project box selection is fixed.", Severity.DEBUG);
+                Log.Logger.Debug("Project box selection is fixed.");
                 // if there are no project to select set; will be ignored
                 // and wont raise new SelectionChanged Event.
                 projectsBox.SelectedIndex = 0;
@@ -64,7 +71,7 @@ namespace LangTools
             // Work with valid project
             else
             {
-                Logger.Write("Project box selection changed.", Severity.DEBUG);
+                Log.Logger.Debug("Project box selection changed.");
                 object item = projectsBox.SelectedItem;
                 vm.SelectProject(item);
             }

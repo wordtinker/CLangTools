@@ -1,8 +1,6 @@
-﻿using LangTools.DataAccess;
-
-namespace LangTools.Models
+﻿namespace LangTools.Models
 {
-    enum ValidationError{
+    public enum ValidationError{
         LANGNAMEEMPTY,
         LANGWITHSPACES,
         LANGTAKEN,
@@ -11,7 +9,7 @@ namespace LangTools.Models
         NONE
     }
 
-    class Lingva
+    public class Lingva
     {
         // Properties
         public string Language { get; set; }
@@ -40,8 +38,7 @@ namespace LangTools.Models
                 return ValidationError.LANGWITHSPACES;
             }
 
-            Storage storage = (Storage)App.Current.Properties["storage"];
-            if (storage.LanguageExists(lang))
+            if (MainModel.Instance.LanguageExists(lang))
             {
                 return ValidationError.LANGTAKEN;
             }
@@ -56,8 +53,7 @@ namespace LangTools.Models
                 return ValidationError.FOLDERNAMEEMPTY;
             }
 
-            Storage storage = (Storage)App.Current.Properties["storage"];
-            if (storage.FolderExists(Folder))
+            if (MainModel.Instance.FolderExists(Folder))
             {
                 return ValidationError.FOLDERTAKEN;
             }
@@ -65,7 +61,7 @@ namespace LangTools.Models
             return ValidationError.NONE;
         }
 
-        // Equals ocerride
+        // Equals override
         public override bool Equals(object obj)
         {
             Lingva item = obj as Lingva;

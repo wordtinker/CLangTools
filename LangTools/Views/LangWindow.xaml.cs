@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using LangTools.ViewModels;
+using LangTools.Shared;
 
 namespace LangTools
 {
@@ -57,7 +58,7 @@ namespace LangTools
             {
                 string dirName = dialog.SelectedPath;
 
-                Logger.Write(string.Format("Selected new folder for language: {0}", dirName), Severity.DEBUG);
+                Log.Logger.Debug(string.Format("Selected new folder for language: {0}", dirName));
 
                 folderEdit.Text = dirName;
             }

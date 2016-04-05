@@ -4,22 +4,24 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows;
 using Prism.Mvvm;
 using Prism.Commands;
+using L = LangTools.Shared.Log;
+using LangTools.Data;
 
 namespace LangTools.ViewModels
 {
-    class MainViewModel : BindableBase
+    public class MainViewModel : BindableBase
     {
         // Members
-        private MainModel model = new MainModel();
+        private MainModel model;
         private int totalWords; // total words in the project files
         private int totalUnknown; // unknown words in the project files
         private string log;
         private int progressValue;
         private bool projectSelectable = true; // defines if the user can switch project
         private FileStatsViewModel currentFile; // currently selected file
+        private IUIMainWindowService windowService;
 
         // Properties
         public ObservableCollection<LingvaViewModel> Languages { get; }
@@ -66,44 +68,63 @@ namespace LangTools.ViewModels
         }
 
         // Constructors
-        public MainViewModel()
+        public MainViewModel(IUIMainWindowService windowService)
         {
-            Logger.Write("MainView is starting.", Severity.DEBUG);
+            IStorage storage = new Storage(windowService.AppDir);
+            model = MainModel.CreateModel(storage);
+            model.CorpusDir = windowService.CorpusDir;
+            model.DicDir = windowService.DicDir;
+            model.OutDir = windowService.OutDir;
+
+            this.windowService = windowService;
+
+            L.Logger.Debug("MainView is starting.");
 
             Languages = new ObservableCollection<LingvaViewModel>();
             model.LanguageAdded += (obj, args) => Languages.Add(new LingvaViewModel(args.Content));
             model.LanguageRemoved += (obj, args) => Languages.Remove(new LingvaViewModel(args.Content));
 
             Projects = new ObservableCollection<string>();
-            model.ProjectAdded += (obj, args) => Projects.Add(args.Content);
-            model.ProjectRemoved += (obj, args) => Projects.Remove(args.Content);
+            model.ProjectAdded += (obj, args) => windowService.BeginInvoke(
+                new Action(() => Projects.Add(args.Content)
+                ));
+
+            model.ProjectRemoved += (obj, args) => windowService.BeginInvoke(
+                new Action(() => Projects.Remove(args.Content)
+                ));
 
             Dictionaries = new ObservableCollection<DictViewModel>();
-            model.DictAdded += (obj, args) => Dictionaries.Add(new DictViewModel(args.Content));
-            model.DictRemoved += (obj, args) => Dictionaries.Remove(new DictViewModel(args.Content));
+            model.DictAdded += (obj, args) => windowService.BeginInvoke(
+                new Action(() => Dictionaries.Add(new DictViewModel(windowService, args.Content))
+                ));
+            model.DictRemoved += (obj, args) => windowService.BeginInvoke(
+                new Action(() => Dictionaries.Remove(new DictViewModel(windowService, args.Content))
+                ));
 
             Files = new ObservableCollection<FileStatsViewModel>();
-            model.FileStatsAdded += (obj, args) =>
-            {
-                FileStatsViewModel fsvm = new FileStatsViewModel(args.Content);
-                Files.Add(fsvm);
-                totalUnknown += fsvm.Unknown.GetValueOrDefault();
-                TotalWords += fsvm.Size.GetValueOrDefault();
-            };
-            model.FileStatsRemoved += (obj, args) =>
-            {
-                FileStatsViewModel fsvm = new FileStatsViewModel(args.Content);
-                Files.Remove(fsvm);
-                totalUnknown -= fsvm.Unknown.GetValueOrDefault();
-                TotalWords -= fsvm.Size.GetValueOrDefault();
-            };
+            model.FileStatsAdded += (obj, args) => windowService.BeginInvoke(
+                new Action(() =>
+                {
+                    FileStatsViewModel fsvm = new FileStatsViewModel(windowService, args.Content);
+                    Files.Add(fsvm);
+                    totalUnknown += fsvm.Unknown.GetValueOrDefault();
+                    TotalWords += fsvm.Size.GetValueOrDefault();
+                }));
+            model.FileStatsRemoved += (obj, args) => windowService.BeginInvoke(
+                new Action(() =>
+                {
+                    FileStatsViewModel fsvm = new FileStatsViewModel(windowService, args.Content);
+                    Files.Remove(fsvm);
+                    totalUnknown -= fsvm.Unknown.GetValueOrDefault();
+                    TotalWords -= fsvm.Size.GetValueOrDefault();
+                }));
 
             Words = new ObservableCollection<WordViewModel>();
             WordsInProject = new ObservableCollection<WordViewModel>();
 
             model.InitializeLanguages();
             ProgressValue = 100;
-            Logger.Write("MainView has started.", Severity.DEBUG);
+            L.Logger.Debug("MainView has started.");
         }
 
         // Methods
@@ -112,7 +133,7 @@ namespace LangTools.ViewModels
         /// </summary>
         public void LanguageIsAboutToChange()
         {
-            Logger.Write("Language is about to change.", Severity.DEBUG);
+            L.Logger.Debug("Language is about to change.");
             model.UnselectLanguage();
         }
 
@@ -122,7 +143,7 @@ namespace LangTools.ViewModels
         /// <param name="item"></param>
         public void SelectLanguage(object item)
         {
-            Logger.Write("Language is selected.", Severity.DEBUG);
+            L.Logger.Debug("Language is selected.");
             LingvaViewModel lang = (LingvaViewModel)item;
             // Let the model know that selected language changed
             model.SelectLanguage(lang.CurrentLanguage);
@@ -133,7 +154,7 @@ namespace LangTools.ViewModels
         /// </summary>
         public void ProjectIsAboutToChange()
         {
-            Logger.Write("Project is about to change.", Severity.DEBUG);
+            L.Logger.Debug("Project is about to change.");
             model.UnselectProject();
             // Clear log and list of unknown words
             Log = "";
@@ -146,7 +167,7 @@ namespace LangTools.ViewModels
         /// <param name="item"></param>
         public void SelectProject(object item)
         {
-            Logger.Write("Project is selected.", Severity.DEBUG);
+            L.Logger.Debug("Project is selected.");
             string project = (string)item;
             // Let the model know that selected project changed
             model.SelectProject(project);
@@ -160,7 +181,7 @@ namespace LangTools.ViewModels
         /// <param name="languageViewModel"></param>
         public void AddNewLanguage(LingvaViewModel languageViewModel)
         {
-            Logger.Write("Adding new language.", Severity.DEBUG);
+            L.Logger.Debug("Adding new language.");
             // Use copy constructor.
             Lingva lang = new Lingva(languageViewModel.CurrentLanguage);
             model.AddNewLanguage(lang);
@@ -173,8 +194,8 @@ namespace LangTools.ViewModels
         public void RemoveLanguage(LingvaViewModel languageViewModel)
         {
             Lingva lang = languageViewModel.CurrentLanguage;
-            Logger.Write(string.Format("Removing {0} language from {1}.",
-                lang.Language, lang.Folder), Severity.DEBUG);
+            L.Logger.Debug(string.Format("Removing {0} language from {1}.",
+                lang.Language, lang.Folder));
             model.RemoveOldLanguage(lang);
         }
 
@@ -206,7 +227,7 @@ namespace LangTools.ViewModels
             int oldKnownQty = Files.Sum(x => x.Known.GetValueOrDefault());
             int oldMaybeQty = Files.Sum(x => x.Maybe.GetValueOrDefault());
             ProgressValue = 0;
-            Logger.Write("Requesting Project analysis.", Severity.DEBUG);
+            L.Logger.Debug("Requesting Project analysis.");
 
             await Task.Run(() => model.Analyze(progress));
 
@@ -218,7 +239,7 @@ namespace LangTools.ViewModels
             Log = string.Format(
                 "Analysis is finished. Known: {0:+#;-#;0}, Maybe {1:+#;-#;0}", // Force sign, no sign for zero
                 newKnownQty - oldKnownQty, newMaybeQty - oldMaybeQty);
-            Logger.Write("Project analysis is ready.", Severity.DEBUG);
+            L.Logger.Debug("Project analysis is ready.");
             // Update totals
             UpdateTotalStats();
             ProjectSelectable = true;
@@ -325,9 +346,10 @@ namespace LangTools.ViewModels
             {
                 return new DelegateCommand(() =>
                 {
-                    MessageBox.Show(string.Format("{0}: {1}",
-                        App.Current.Properties["appName"],
-                        CoreAssembly.Version), "About");
+                    windowService.ShowMessage(string.Format(
+                        "{0}: {1}",
+                        windowService.AppName,
+                        CoreAssembly.Version));
                 });
             }
         }
@@ -336,7 +358,7 @@ namespace LangTools.ViewModels
         {
             get
             {
-                return new DelegateCommand(() => App.Current.Shutdown());
+                return new DelegateCommand(() => windowService.Shutdown());
             }
         }
     }

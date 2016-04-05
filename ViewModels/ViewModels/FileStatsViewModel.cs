@@ -1,4 +1,5 @@
 ﻿using LangTools.Models;
+using LangTools.Shared;
 using Prism.Mvvm;
 
 namespace LangTools.ViewModels
@@ -6,10 +7,11 @@ namespace LangTools.ViewModels
     /// <summary>
     /// Represents statistical data of the text file.
     /// </summary>
-    class FileStatsViewModel : BindableBase
+    public class FileStatsViewModel : BindableBase
     {
         private FileStats fileStats;
         private bool highlighted;
+        private IUIBaseService windowService;
 
         public FileStats FileStats { get { return fileStats; } }
         public string FileName { get { return fileStats.FileName; } }
@@ -51,8 +53,9 @@ namespace LangTools.ViewModels
             }
         }
 
-        public FileStatsViewModel(FileStats fileStats)
+        public FileStatsViewModel(IUIBaseService windowService, FileStats fileStats)
         {
+            this.windowService = windowService;
             this.fileStats = fileStats;
             this.fileStats.PropertyChanged += (obj, e) =>
             {
@@ -73,25 +76,44 @@ namespace LangTools.ViewModels
 
         public void OpenOutput()
         {
-            IOTools.OpenWithDefault(OutPath);
+            
+            if (!IOTools.OpenWithDefault(OutPath))
+            {
+                windowService.ShowMessage(string.Format("Can't open {0}.", OutPath));
+            }
         }
 
         public void OpenFile()
         {
-            IOTools.OpenWithDefault(FilePath);
+            if (!IOTools.OpenWithDefault(FilePath))
+            {
+                windowService.ShowMessage(string.Format("Can't open {0}.", FilePath));
+            }
         }
 
         public void DeleteOutput()
         {
-            IOTools.DeleteFile(OutPath);
+            if (windowService.Confirm(string.Format("Do you want to delete\n {0} ?", OutPath)))
+            {
+                if (!IOTools.DeleteFile(OutPath))
+                {
+                    windowService.ShowMessage(string.Format("Can't delete {0}.", OutPath));
+                }
+            }
         }
 
         public void DeleteFile()
         {
-            //// Model will be updated after FileWatcher catches the event
-            IOTools.DeleteFile(FilePath);
+            // Model will be updated after FileWatcher catches the event
+            if (windowService.Confirm(string.Format("Do you want to delete\n {0} ?", FilePath)))
+            {
+                if (!IOTools.DeleteFile(FilePath))
+                {
+                    windowService.ShowMessage(string.Format("Can't delete {0}.", FilePath));
+                }
+            }
             // Delete output file together
-            IOTools.DeleteFile(OutPath);
+            DeleteOutput();
         }
 
         // Equals implementation

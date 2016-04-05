@@ -2,7 +2,8 @@
 using System.Configuration;
 using System.Windows;
 using System.IO;
-using LangTools.DataAccess;
+using LangTools.Shared;
+using LangTools.ViewModels;
 
 namespace LangTools
 {
@@ -76,6 +77,7 @@ namespace LangTools
                 return;
             }
             appDir = Path.Combine(appDir, appName);
+            Current.Properties["appDir"] = appDir;
 
             // Create directory if not exist
             DirectoryInfo dir;
@@ -90,35 +92,19 @@ namespace LangTools
                 return;
             }
 
-            // Create DB file
-            string dbFileName = Path.Combine(appDir, "lt.db");
-            if (!File.Exists(dbFileName))
+            // Make sure VM is ready to start.
+            if (!VMBoot.IsReadyToLoad(appDir))
             {
-                try
-                {
-                    System.Data.SQLite.SQLiteConnection.CreateFile(dbFileName);
-                }
-                catch (Exception err)
-                {
-                    MessageBox.Show(string.Format("Can't create DB file.\nError:{0}", err.ToString()));
-                    return;
-                }
+                MessageBox.Show(string.Format("Can't start the app."));
+                return;
             }
 
-
-            // Configure logging
-            string logFileName = Path.Combine(appDir, "log.txt");
-            Logger.ConfigFile = logFileName;
-            
-            Logger.Write("----The new session has started.----", Severity.DEBUG);
-            // Establish DB Connection
-            Storage storage = new Storage(dbFileName);
-            Current.Properties["storage"] = storage;
+            Log.Logger.Debug("----The new session has started.----");
 
             // Start the main window
             MainWindow wnd = new MainWindow();
             wnd.Title = appName;
-            wnd.Show();         
+            wnd.Show();   
         }
 
         /// <summary>
@@ -128,26 +114,7 @@ namespace LangTools
         /// <param name="e"></param>
         private void HandleException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
         {
-            Logger.Write(e.Exception.ToString());
-            ReleaseStorage();
-        }
-
-        /// <summary>
-        /// Exit event handler.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void ApplicationExit(object sender, ExitEventArgs e)
-        {
-            ReleaseStorage();
-        }
-
-        /// <summary>
-        /// Releases the DB connection.
-        /// </summary>
-        private void ReleaseStorage()
-        {
-            ((Storage)Current.Properties["storage"]).Close();
+            Log.Logger.Error(e.Exception.ToString());
         }
     }
 }

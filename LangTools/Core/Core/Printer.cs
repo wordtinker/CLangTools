@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using LangTools.Shared;
 
 namespace LangTools.Core
 {
     /// <summary>
     /// Manages the printing of the output page.
     /// </summary>
-    class Printer
+    public class Printer
     {
         private HTMLPrinter printer = new HTMLPrinter();
 
@@ -28,7 +29,10 @@ namespace LangTools.Core
         {
             // Create proper name for output file;
             string outName = Path.ChangeExtension(fileName, ".html");
-            string outPath = Path.Combine(language, (string)App.Current.Properties["outputDir"],
+            // TODO
+            // string outPath = Path.Combine(language, (string)App.Current.Properties["outputDir"],
+            //                              project, outName);
+            string outPath = Path.Combine(language, "output",
                                           project, outName);
             // Get the HTML and save
             string HTML = printer.toHTML(fileName, tokens);

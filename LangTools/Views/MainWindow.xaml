@@ -3,13 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:localVM="clr-namespace:LangTools.ViewModels"
         xmlns:localV="clr-namespace:LangTools"
         mc:Ignorable="d"
         Height="600" Width="800" MinWidth="800" MinHeight="600">
-    <Window.DataContext>
-        <localVM:MainViewModel/>
-    </Window.DataContext>
     <Window.Resources>
         <LinearGradientBrush x:Key="HlBrush" StartPoint="0,0" EndPoint="0,1">
             <GradientStop Offset="0" Color="White"/>
