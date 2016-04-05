@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Windows.Input;
 using Prism.Mvvm;
 
 namespace LangTools.ViewModels
