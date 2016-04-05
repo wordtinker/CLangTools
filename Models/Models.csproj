@@ -68,11 +68,11 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\LangTools\Core\Core.csproj">
+    <ProjectReference Include="..\Core\Core.csproj">
       <Project>{e02c2306-45ae-4901-8aca-cd9a004982cc}</Project>
       <Name>Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\LangTools\Shared\Shared.csproj">
+    <ProjectReference Include="..\Shared\Shared.csproj">
       <Project>{15f70888-5855-4141-8669-e4ab19e7ef75}</Project>
       <Name>Shared</Name>
     </ProjectReference>

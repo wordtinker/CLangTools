@@ -165,13 +165,13 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Shared\Shared.csproj">
+      <Project>{15f70888-5855-4141-8669-e4ab19e7ef75}</Project>
+      <Name>Shared</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ViewModels\ViewModels.csproj">
       <Project>{9e67f90b-83e1-49f4-bb6e-4087be2d4f67}</Project>
       <Name>ViewModels</Name>
-    </ProjectReference>
-    <ProjectReference Include="Shared\Shared.csproj">
-      <Project>{15f70888-5855-4141-8669-e4ab19e7ef75}</Project>
-      <Name>Shared</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

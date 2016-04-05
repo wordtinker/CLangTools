@@ -67,13 +67,13 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\LangTools\Shared\Shared.csproj">
-      <Project>{15f70888-5855-4141-8669-e4ab19e7ef75}</Project>
-      <Name>Shared</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Models\Models.csproj">
       <Project>{b9bcee05-fd7b-490e-a9dc-8cafbbdfadc7}</Project>
       <Name>Models</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Shared\Shared.csproj">
+      <Project>{15f70888-5855-4141-8669-e4ab19e7ef75}</Project>
+      <Name>Shared</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
