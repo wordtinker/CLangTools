@@ -155,8 +155,8 @@ namespace LangTools.Core
         public void ExpandDictionary()
         {
             // Sort pattern levels
-            List<string> Layers = plug.Patterns.Keys.ToList();
-            Layers.Sort(); // we are sorting strings 
+            List<string> layers = plug?.Patterns.Keys.ToList() ?? new List<string>();
+            layers.Sort(); // we are sorting strings 
                            // !!! dictionary deeper than "9" will bring errors
 
             // Create sets to hold the expanding dictionary in the process
@@ -164,7 +164,7 @@ namespace LangTools.Core
             HashSet<string> nextState;
             // Transform the word from initial form through layers
             // of transformations.
-            foreach (string layer in Layers)
+            foreach (string layer in layers)
             {
                 nextState = new HashSet<string>();
                 foreach (var pattern in plug.Patterns[layer])
@@ -261,12 +261,15 @@ namespace LangTools.Core
         /// <returns></returns>
         private bool IsExpandable(string word)
         {
-            foreach (string prefix in plug.Prefixes)
+            if (plug != null)
             {
-                if (word.StartsWith(prefix, StringComparison.Ordinal) &&
-                    dict.Keys.Contains(word.Substring(prefix.Length)))
+                foreach (string prefix in plug.Prefixes)
                 {
-                    return true;
+                    if (word.StartsWith(prefix, StringComparison.Ordinal) &&
+                        dict.Keys.Contains(word.Substring(prefix.Length)))
+                    {
+                        return true;
+                    }
                 }
             }
             return false;
