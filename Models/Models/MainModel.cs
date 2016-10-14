@@ -625,7 +625,7 @@ namespace LangTools.Models
                     // Update stats in the DB
                     storage.UpdateStats(file);
                     // Add new word list to DB
-                    storage.UpdateWords(file.FilePath, item.UnknownWords);
+                    storage.UpdateWords(file.FilePath, item.UnknownTokens);
                 }
                 progress.Report(new AnalysisProgress(
                     percentValue,

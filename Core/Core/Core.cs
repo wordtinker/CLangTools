@@ -14,21 +14,18 @@ namespace LangTools.Core
     /// </summary>
     public class Report
     {
-        public readonly List<Token> Tokens;
-        public readonly Dictionary<string, int> UnknownWords;
-        public readonly int Size;
-        public readonly int Known;
-        public readonly int Maybe;
-
-        public Report(List<Token> tokens,
-            Dictionary<string, int> unknownWords,
-            int size, int known, int maybe)
+        public List<Token> Tokens { get; internal set; }
+        public int Size { get { return Tokens.Distinct().Sum(tkn => tkn.Count); } }
+        public int Known { get {
+                return Tokens.Distinct().Where(tkn => tkn.Know == Klass.KNOWN).Sum(tkn => tkn.Count); } }
+        public int Maybe { get {
+                return Tokens.Distinct().Where(tkn => tkn.Know == Klass.MAYBE).Sum(tkn => tkn.Count); } }
+        public HashSet<Token> UnknownTokens
         {
-            this.Tokens = tokens;
-            this.UnknownWords = unknownWords;
-            this.Size = size;
-            this.Known = known;
-            this.Maybe = maybe;
+            get
+            {
+                return new HashSet<Token>(Tokens.Where(tkn => tkn.Know == Klass.UNKNOWN));
+            }
         }
     }
 
@@ -116,11 +113,6 @@ namespace LangTools.Core
         private Plugin plug;
         // The dictionary to hold known words
         private Dictionary<string, Source> dict = new Dictionary<string, Source>();
-        // Current text counters
-        private Dictionary<string, int> unknownWords;
-        private int textSizeCount;
-        private int knownWordsCount;
-        private int maybeWordsCount;
 
         /// <summary>
         /// Loads json plugin for selected language.
@@ -203,18 +195,13 @@ namespace LangTools.Core
         /// <returns></returns>
         public Report AnalyzeText(string content)
         {
-            // Reset text counters
-            unknownWords = new Dictionary<string, int>();
-            textSizeCount = 0;
-            knownWordsCount = 0;
-            maybeWordsCount = 0;
-
             List<Token> tokenList = new List<Token>(new Tokenizer(content));
             tokenList.ForEach(AnalyzeToken);
-            
-            return new Report(tokenList, unknownWords,
-                textSizeCount, knownWordsCount, maybeWordsCount
-                );
+
+            return new Report
+            {
+                Tokens = tokenList
+            };
         }
 
         /// <summary>
@@ -223,31 +210,25 @@ namespace LangTools.Core
         /// <param name="token"></param>
         private void AnalyzeToken(Token token)
         {
-            if (token.Type == TokenType.WORD)
+            if (token.Type == TokenType.WORD && token.Know == Klass.UNDECIDED)
             {
-                string word = token.Word.ToLower();
-                textSizeCount += 1;
-                if (dict.ContainsKey(word))
+                if (dict.ContainsKey(token.LWord))
                 {
-                    if (dict[word] == Source.ORIGINAL)
+                    if (dict[token.LWord] == Source.ORIGINAL)
                     {
-                        knownWordsCount += 1;
                         token.Know = Klass.KNOWN;
                     }
                     else
                     {
-                        maybeWordsCount += 1;
                         token.Know = Klass.MAYBE;
                     }
                 }
-                else if (IsExpandable(word))
+                else if (IsExpandable(token.LWord))
                 {
-                    maybeWordsCount += 1;
                     token.Know = Klass.MAYBE;
                 }
                 else
                 {
-                    AddToUnkownDict(word);
                     token.Know = Klass.UNKNOWN;
                 }
             }
@@ -274,23 +255,6 @@ namespace LangTools.Core
             }
             return false;
         }
-
-        /// <summary>
-        /// Utility function that safely adds the word
-        /// into dictionary.
-        /// </summary>
-        /// <param name="word"></param>
-        private void AddToUnkownDict(string word)
-        {
-            if (unknownWords.ContainsKey(word))
-            {
-                unknownWords[word] += 1;
-            }
-            else
-            {
-                unknownWords[word] = 1;
-            }
-        }
     }
 
     /// <summary>
@@ -307,6 +271,7 @@ namespace LangTools.Core
         // )?       # optionally
         private static Regex rx = new Regex(@"\p{L}+([״'׳""]\p{L}+)?", RegexOptions.Compiled);
         private string content;
+        private Dictionary<string, Token> uniqueWordTokens = new Dictionary<string, Token>();
 
         public Tokenizer(string content)
         {
@@ -337,11 +302,28 @@ namespace LangTools.Core
                         };
                     }
                     // Return the word
-                    yield return new Token
+                    string word = match.Value;
+                    string lWord = word.ToLower();
+                    Token tkn;
+                    if (uniqueWordTokens.ContainsKey(lWord))
                     {
-                        Word = match.Value,
-                        Type = TokenType.WORD
-                    };
+                        tkn = uniqueWordTokens[lWord];
+                        tkn.Count += 1;
+                    }
+                    else
+                    {
+                        tkn = new Token
+                        {
+                            Word = word,
+                            LWord = lWord,
+                            Type = TokenType.WORD,
+                            Know = Klass.UNDECIDED,
+                            Count = 1
+                        };
+
+                        uniqueWordTokens.Add(lWord, tkn);
+                    }
+                    yield return tkn;
                     // Move position behind the word
                     position = match.Index + match.Length;
                 }
@@ -369,6 +351,7 @@ namespace LangTools.Core
     /// </summary>
     public enum Klass
     {
+        UNDECIDED,
         KNOWN,
         MAYBE,
         UNKNOWN
@@ -380,6 +363,8 @@ namespace LangTools.Core
     public class Token
     {
         public string Word { get; set; }
+        public string LWord { get; set; } // lower case Word
+        public int Count { get; set; } // number of occurences in a text
         public TokenType Type { get; set; }
         public Klass Know { get; set; }
     }

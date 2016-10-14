@@ -1,4 +1,5 @@
-﻿using LangTools.Models;
+﻿using LangTools.Core;
+using LangTools.Models;
 using LangTools.Shared;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ namespace LangTools.Data
         // DB connection
         private SQLiteConnection dbConn;
         // temp variables to store data for transactions
-        private Dictionary<string, Dictionary<string, int>> wordList = new Dictionary<string, Dictionary<string, int>>();
+        private Dictionary<string, HashSet<Token>> tokenList = new Dictionary<string, HashSet<Token>>();
         private List<FileStats> statList = new List<FileStats>();
 
         public Storage(string directory)
@@ -349,9 +350,9 @@ namespace LangTools.Data
         /// </summary>
         /// <param name="filePath"></param>
         /// <param name="unknownWords"></param>
-        public void UpdateWords(string filePath, Dictionary<string, int> unknownWords)
+        public void UpdateWords(string filePath, HashSet<Token> tokens)
         {
-            wordList.Add(filePath, unknownWords);
+            tokenList.Add(filePath, tokens);
         }
 
         /// <summary>
@@ -362,7 +363,7 @@ namespace LangTools.Data
             using (SQLiteTransaction transaction = dbConn.BeginTransaction())
             {
                 string command = "INSERT INTO Words VALUES(@word, @file, @quantity)";
-                foreach (string filePath in wordList.Keys)
+                foreach (string filePath in tokenList.Keys)
                 {
                     SQLiteParameter pathParam = new SQLiteParameter("@file");
                     pathParam.Value = filePath;
@@ -372,15 +373,15 @@ namespace LangTools.Data
                     {
                         cmd.CommandText = command;
                         cmd.Parameters.Add(pathParam);
-                        foreach (var item in wordList[filePath])
+                        foreach (var item in tokenList[filePath])
                         {
                             SQLiteParameter param = new SQLiteParameter("@word");
-                            param.Value = item.Key;
+                            param.Value = item.LWord;
                             pathParam.DbType = System.Data.DbType.String;
                             cmd.Parameters.Add(param);
 
                             param = new SQLiteParameter("@quantity");
-                            param.Value = item.Value;
+                            param.Value = item.Count;
                             cmd.Parameters.Add(param);
 
                             cmd.ExecuteNonQuery();
@@ -389,7 +390,7 @@ namespace LangTools.Data
                 }
                 transaction.Commit();
             }
-            wordList.Clear();
+            tokenList.Clear();
             GC.Collect();
         }
 

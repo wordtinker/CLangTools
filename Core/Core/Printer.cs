@@ -72,6 +72,7 @@ namespace LangTools.Core
                     if (tkn.Type == TokenType.WORD)
                     {
                         // Put into list of words
+                        // TODO sub and sup
                         string tag = string.Format(
                             "<span class={0}>{1}</span>",
                             tkn.Know,

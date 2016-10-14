@@ -1,4 +1,5 @@
-﻿using LangTools.Models;
+﻿using LangTools.Core;
+using LangTools.Models;
 using System.Collections.Generic;
 
 namespace LangTools.Data
@@ -14,7 +15,7 @@ namespace LangTools.Data
         void RemoveFileStats(FileStats file);
         void UpdateStats(FileStats stats);
         void CommitStats();
-        void UpdateWords(string filePath, Dictionary<string, int> unknownWords);
+        void UpdateWords(string filePath, HashSet<Token> tokens);
         void CommitWords();
         Dictionary<string, int> GetUnknownWords(FileStats fs);
         Dictionary<string, int> GetUnknownWords(Lingva lang, string project);
