@@ -72,11 +72,22 @@ namespace LangTools.Core
                     if (tkn.Type == TokenType.WORD)
                     {
                         // Put into list of words
-                        // TODO sub and sup
-                        string tag = string.Format(
-                            "<span class={0}>{1}</span>",
-                            tkn.Know,
-                            tkn.Word);
+                        string tag;
+                        if (tkn.Know == Klass.UNKNOWN)
+                        {
+                            tag = string.Format(
+                                "<span class={0}>{1}</span><sub>{2}</sub>",
+                                tkn.Know,
+                                tkn.Word,
+                                tkn.Count);
+                        }
+                        else
+                        {
+                            tag = string.Format(
+                                "<span class={0}>{1}</span>",
+                                tkn.Know,
+                                tkn.Word);
+                        }
                         tags.Add(tag);
                     }
                     else if (tkn.Word.Contains("\n"))
