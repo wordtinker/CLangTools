@@ -376,12 +376,12 @@ namespace LangTools.Data
                         foreach (var item in tokenList[filePath])
                         {
                             SQLiteParameter param = new SQLiteParameter("@word");
-                            param.Value = item.LWord;
+                            param.Value = item.Stats.LWord;
                             pathParam.DbType = System.Data.DbType.String;
                             cmd.Parameters.Add(param);
 
                             param = new SQLiteParameter("@quantity");
-                            param.Value = item.Count;
+                            param.Value = item.Stats.Count;
                             cmd.Parameters.Add(param);
 
                             cmd.ExecuteNonQuery();

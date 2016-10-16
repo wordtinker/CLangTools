@@ -73,19 +73,19 @@ namespace LangTools.Core
                     {
                         // Put into list of words
                         string tag;
-                        if (tkn.Know == Klass.UNKNOWN)
+                        if (tkn.Stats.Know == Klass.UNKNOWN)
                         {
                             tag = string.Format(
                                 "<span class={0}>{1}</span><sub>{2}</sub>",
-                                tkn.Know,
+                                tkn.Stats.Know,
                                 tkn.Word,
-                                tkn.Count);
+                                tkn.Stats.Count);
                         }
                         else
                         {
                             tag = string.Format(
                                 "<span class={0}>{1}</span>",
-                                tkn.Know,
+                                tkn.Stats.Know,
                                 tkn.Word);
                         }
                         tags.Add(tag);

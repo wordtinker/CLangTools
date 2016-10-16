@@ -15,16 +15,35 @@ namespace LangTools.Core
     public class Report
     {
         public List<Token> Tokens { get; internal set; }
-        public int Size { get { return Tokens.Distinct().Sum(tkn => tkn.Count); } }
-        public int Known { get {
-                return Tokens.Distinct().Where(tkn => tkn.Know == Klass.KNOWN).Sum(tkn => tkn.Count); } }
-        public int Maybe { get {
-                return Tokens.Distinct().Where(tkn => tkn.Know == Klass.MAYBE).Sum(tkn => tkn.Count); } }
+        public int Size
+        {
+            get
+            {
+                return Tokens.Where(tkn => tkn.Stats != null).Select(tkn => tkn.Stats).Distinct()
+                    .Sum(s => s.Count);
+            }
+        }
+        public int Known
+        {
+            get
+            {
+                return Tokens.Where(tkn => tkn.Stats != null).Select(tkn => tkn.Stats).Distinct()
+                    .Where(s => s.Know == Klass.KNOWN).Sum(s => s.Count);
+            }
+        }
+        public int Maybe
+        {
+            get
+            {
+                return Tokens.Where(tkn => tkn.Stats != null).Select(tkn => tkn.Stats).Distinct()
+                    .Where(s => s.Know == Klass.MAYBE).Sum(s => s.Count);
+            }
+        }
         public HashSet<Token> UnknownTokens
         {
             get
             {
-                return new HashSet<Token>(Tokens.Where(tkn => tkn.Know == Klass.UNKNOWN));
+                return new HashSet<Token>(Tokens.Where(tkn => tkn.Stats?.Know == Klass.UNKNOWN));
             }
         }
     }
@@ -210,26 +229,26 @@ namespace LangTools.Core
         /// <param name="token"></param>
         private void AnalyzeToken(Token token)
         {
-            if (token.Type == TokenType.WORD && token.Know == Klass.UNDECIDED)
+            if (token.Type == TokenType.WORD && token.Stats.Know == Klass.UNDECIDED)
             {
-                if (dict.ContainsKey(token.LWord))
+                if (dict.ContainsKey(token.Stats.LWord))
                 {
-                    if (dict[token.LWord] == Source.ORIGINAL)
+                    if (dict[token.Stats.LWord] == Source.ORIGINAL)
                     {
-                        token.Know = Klass.KNOWN;
+                        token.Stats.Know = Klass.KNOWN;
                     }
                     else
                     {
-                        token.Know = Klass.MAYBE;
+                        token.Stats.Know = Klass.MAYBE;
                     }
                 }
-                else if (IsExpandable(token.LWord))
+                else if (IsExpandable(token.Stats.LWord))
                 {
-                    token.Know = Klass.MAYBE;
+                    token.Stats.Know = Klass.MAYBE;
                 }
                 else
                 {
-                    token.Know = Klass.UNKNOWN;
+                    token.Stats.Know = Klass.UNKNOWN;
                 }
             }
         }
@@ -271,7 +290,7 @@ namespace LangTools.Core
         // )?       # optionally
         private static Regex rx = new Regex(@"\p{L}+([״'׳""]\p{L}+)?", RegexOptions.Compiled);
         private string content;
-        private Dictionary<string, Token> uniqueWordTokens = new Dictionary<string, Token>();
+        private Dictionary<string, TokenStats> uniqueWords = new Dictionary<string, TokenStats>();
 
         public Tokenizer(string content)
         {
@@ -304,25 +323,28 @@ namespace LangTools.Core
                     // Return the word
                     string word = match.Value;
                     string lWord = word.ToLower();
-                    Token tkn;
-                    if (uniqueWordTokens.ContainsKey(lWord))
+                    Token tkn = new Token
                     {
-                        tkn = uniqueWordTokens[lWord];
-                        tkn.Count += 1;
+                        Word = word,
+                        Type = TokenType.WORD
+                    };
+                    TokenStats stats;
+                    if (uniqueWords.ContainsKey(lWord))
+                    {
+                        stats = uniqueWords[lWord];
+                        stats.Count += 1;
                     }
                     else
                     {
-                        tkn = new Token
+                        stats = new TokenStats
                         {
-                            Word = word,
                             LWord = lWord,
-                            Type = TokenType.WORD,
                             Know = Klass.UNDECIDED,
                             Count = 1
                         };
-
-                        uniqueWordTokens.Add(lWord, tkn);
+                        uniqueWords.Add(lWord, stats);
                     }
+                    tkn.Stats = stats;
                     yield return tkn;
                     // Move position behind the word
                     position = match.Index + match.Length;
@@ -360,12 +382,20 @@ namespace LangTools.Core
     /// <summary>
     /// Word token.
     /// </summary>
-    public class Token
+    public struct Token
     {
         public string Word { get; set; }
+        public TokenType Type { get; set; }
+        public TokenStats Stats { get; set; }
+    }
+
+    /// <summary>
+    /// Object that holds stats for one word.
+    /// </summary>
+    public class TokenStats
+    {
         public string LWord { get; set; } // lower case Word
         public int Count { get; set; } // number of occurences in a text
-        public TokenType Type { get; set; }
         public Klass Know { get; set; }
     }
 }
