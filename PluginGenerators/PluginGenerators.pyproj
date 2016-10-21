@@ -23,6 +23,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="English.py" />
+    <Compile Include="French.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Hebrew.py">
       <SubType>Code</SubType>
     </Compile>
