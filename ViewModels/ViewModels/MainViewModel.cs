@@ -211,17 +211,6 @@ namespace LangTools.ViewModels
             Words.Clear();
             WordsInProject.Clear();
             RemoveHighlighting();
-            //// Callback function to react on the progress
-            //// during analysis
-            Progress<AnalysisProgress> progress = new Progress<AnalysisProgress>(ev =>
-            {
-                //Update the visual progress of the analysis.
-                ProgressValue = Convert.ToInt32(ev.Percent);
-                if (ev.FileName != null)
-                {
-                    Log = string.Format("{0} is ready!", ev.FileName);
-                }
-            });
 
             // Get the old project stats
             int oldKnownQty = Files.Sum(x => x.Known.GetValueOrDefault());
@@ -229,7 +218,17 @@ namespace LangTools.ViewModels
             ProgressValue = 0;
             L.Logger.Debug("Requesting Project analysis.");
 
-            await Task.Run(() => model.Analyze(progress));
+            await Task.Run(() => model.Analyze(new Progress<Tuple<double, string>>(
+                p =>
+                {
+                    //Update the visual progress of the analysis.
+                    ProgressValue = Convert.ToInt32(p.Item1);
+                    if (p.Item2 != null)
+                    {
+                        Log = string.Format("{0} is ready!", p.Item2);
+                    }
+                }
+                )));
 
             // Get the new project stats
             int newKnownQty = Files.Sum(x => x.Known.GetValueOrDefault());

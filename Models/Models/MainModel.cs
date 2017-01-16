@@ -17,18 +17,6 @@ namespace LangTools.Models
         }
     }
 
-    public class AnalysisProgress
-    {
-        public readonly double Percent;
-        public readonly string FileName;
-
-        internal AnalysisProgress(double progressValue, string fileName=null)
-        {
-            this.Percent = progressValue;
-            this.FileName = fileName;
-        }
-    }
-
     public class MainModel
     {
         // Memmbers
@@ -577,7 +565,7 @@ namespace LangTools.Models
         /// Makes analysis of the project files.
         /// </summary>
         /// <param name="progress"></param>
-        public void Analyze(IProgress<AnalysisProgress> progress)
+        public void Analyze(IProgress<Tuple<double, string>> progress)
         {
             if (currentProject == null || currentLanguage == null || files.Count == 0 || dicts.Count == 0)
             {
@@ -591,7 +579,7 @@ namespace LangTools.Models
             specDictWatcher.EnableRaisingEvents = false;
 
             Log.Logger.Debug("Project analysis has started.");
-            progress.Report(new AnalysisProgress(0));
+            progress.Report(Tuple.Create(0d, (string)null));
             // Ensure directory structure, dict and output project specific dirs
             //  are misssing on first run.
             EnsureProjectStructure(currentLanguage.Folder, currentProject);
@@ -606,7 +594,8 @@ namespace LangTools.Models
             //// Create printer that will print analysis
             Printer printer = new Printer(currentLanguage.Language);
 
-            progress.Report(new AnalysisProgress(30));
+            progress.Report(Tuple.Create(30d, (string)null));
+
             double percentValue = 30;
             double step = 70.0 / files.Count();
             foreach (FileStats file in files)
@@ -627,10 +616,7 @@ namespace LangTools.Models
                     // Add new word list to DB
                     storage.UpdateWords(file.FilePath, item.UnknownTokens);
                 }
-                progress.Report(new AnalysisProgress(
-                    percentValue,
-                    file.FileName
-                    ));
+                progress.Report(Tuple.Create(percentValue, file.FileName));
             }
             // Commit changes to DB
             storage.CommitStats();
