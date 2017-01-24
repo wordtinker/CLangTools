@@ -71,7 +71,8 @@ namespace LangTools.ViewModels
         public MainViewModel(IUIMainWindowService windowService)
         {
             IStorage storage = new Storage(windowService.AppDir);
-            model = MainModel.CreateModel(storage);
+            model = MainModel.Instance;
+            model.SetStorage(storage);
             model.CorpusDir = windowService.CorpusDir;
             model.DicDir = windowService.DicDir;
             model.OutDir = windowService.OutDir;

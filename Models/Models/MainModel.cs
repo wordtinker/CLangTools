@@ -22,7 +22,8 @@ namespace LangTools.Models
         // Memmbers
         private const string COMMONDICTNAME = "Common.txt";
 
-        private static MainModel instance;
+        // Singleton instance
+        private static readonly MainModel instance = new MainModel();
 
         private IStorage storage;
 
@@ -39,20 +40,14 @@ namespace LangTools.Models
         private Lingva currentLanguage;
         private string currentProject;
 
+        // Singleton
         public static MainModel Instance
         {
             get
             {
-                if (instance != null)
-                {
-                    return instance;
-                }
-                else
-                {
-                    throw new NotImplementedException();
-                }
+                return instance;
             }
-        } 
+        }
         public string CorpusDir { get; set; } = "corpus";
         public string DicDir { get; set; } = "dics";
         public string OutDir { get; set; } = "output";
@@ -66,17 +61,16 @@ namespace LangTools.Models
         public event EventHandler<TypedEventArgs<Lingva>> LanguageAdded;
         public event EventHandler<TypedEventArgs<Lingva>> LanguageRemoved;
 
-        public static MainModel CreateModel(IStorage storage)
-        {
-            if (instance == null)
-            {
-                instance = new MainModel(storage);
-            }
-            
-            return instance;
-        }
+        /// <summary>
+        /// Singleton ctor
+        /// </summary>
+        private MainModel() { /* Empty */ }
 
-        private MainModel(IStorage storage)
+        /// <summary>
+        /// Method that sets new storage for model.
+        /// </summary>
+        /// <param name="storage"></param>
+        public void SetStorage(IStorage storage)
         {
             // Establish DB Connection
             this.storage = storage;
