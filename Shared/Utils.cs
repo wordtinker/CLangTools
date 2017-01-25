@@ -88,6 +88,25 @@ namespace LangTools.Shared
         }
 
         /// <summary>
+        /// Provides the text contents of the file by line.
+        /// </summary>
+        public static bool ReadAllLines(string filePath, out string[] content)
+        {
+            Log.Logger.Debug(string.Format("Reading from {0}", filePath));
+            try
+            {
+                content = File.ReadAllLines(filePath, Encoding.UTF8);
+                return true;
+            }
+            catch (Exception e)
+            {
+                Log.Logger.Error(string.Format("Can't read file: {0}", e.Message));
+                content = null;
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Saves the content to the file.
         /// </summary>
         /// <param name="filePath"></param>
