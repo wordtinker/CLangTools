@@ -595,20 +595,25 @@ namespace LangTools.Models
             foreach (FileStats file in files)
             {
                 percentValue += step;
-                Report item = worker.AnalyzeFile(file.FilePath);
-                if (item != null)
+                Document docRoot = worker.AnalyzeFile(file.FilePath);
+                if (docRoot != null)
                 {
                     // Compare old and new stats
-                    if (file.Update(item.Size, item.Known, item.Maybe))
+                    if (file.Update(docRoot.Size, docRoot.Known, docRoot.Maybe))
                     {
                         // Produce new output page
-                        printer.Print(file.FileName, file.Project,
-                            currentLanguage.Folder, item.Tokens);
+                        printer.Print(file.Project, currentLanguage.Folder, docRoot);
                     }
                     // Update stats in the DB
                     storage.UpdateStats(file);
-                    // Add new word list to DB
-                    storage.UpdateWords(file.FilePath, item.UnknownTokens);
+                    // Add new list of unknown words into DB
+                    var newWords = from tkn in docRoot.Tokens
+                                   group tkn by tkn.Stats into g
+                                   let t = g.First()
+                                   where t.Stats?.Know == Klass.UNKNOWN
+                                   select t;
+                    // TODO Drop hashset ? drop Tokens, use TokenStats instead
+                    storage.UpdateWords(file.FilePath, new HashSet<Token>(newWords));
                 }
                 progress.Report(Tuple.Create(percentValue, file.FileName));
             }

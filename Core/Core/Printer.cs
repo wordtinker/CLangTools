@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using LangTools.Shared;
+using System.Linq;
 
 namespace LangTools.Core
 {
@@ -25,17 +26,18 @@ namespace LangTools.Core
             }
         }
 
-        public void Print(string fileName, string project, string language, List<Token> tokens)
+        public void Print(string project, string language, Item root)
         {
             // Create proper name for output file;
-            string outName = Path.ChangeExtension(fileName, ".html");
+            string outName = Path.ChangeExtension(root.Name, ".html");
             // TODO
             // string outPath = Path.Combine(language, (string)App.Current.Properties["outputDir"],
             //                              project, outName);
             string outPath = Path.Combine(language, "output",
                                           project, outName);
+
             // Get the HTML and save
-            string HTML = printer.toHTML(fileName, tokens);
+            string HTML = printer.toHTML(root);
             IOTools.SaveFile(outPath, HTML);
         }
     }
@@ -45,75 +47,6 @@ namespace LangTools.Core
     /// </summary>
     class HTMLPrinter
     {
-        private class Wrapper : IEnumerable<string>
-        {
-            private List<Token> tokens;
-            private List<string> tags = new List<string>();
-
-            public Wrapper(List<Token> tokens)
-            {
-                this.tokens = tokens;
-            }
-
-            private string getParagraph(string endOfParagraph)
-            {
-                tags.Add(endOfParagraph);
-                tags.Insert(0, "<p>");
-                tags.Add("</p>");
-                string result = string.Join("", tags);
-                tags.Clear();
-                return result;
-            }
-
-            public IEnumerator<string> GetEnumerator()
-            {
-                foreach (Token tkn in tokens)
-                {
-                    if (tkn.Type == TokenType.WORD)
-                    {
-                        // Put into list of words
-                        string tag;
-                        if (tkn.Stats.Know == Klass.UNKNOWN)
-                        {
-                            tag = string.Format(
-                                "<span class={0}>{1}</span><sub>{2}</sub>",
-                                tkn.Stats.Know,
-                                tkn.Word,
-                                tkn.Stats.Count);
-                        }
-                        else
-                        {
-                            tag = string.Format(
-                                "<span class={0}>{1}</span>",
-                                tkn.Stats.Know,
-                                tkn.Word);
-                        }
-                        tags.Add(tag);
-                    }
-                    else if (tkn.Word.Contains("\n"))
-                    {
-                        // yield the paragraphs
-                        foreach (string p in tkn.Word.Split('\n'))
-                        {
-                            yield return getParagraph(p);
-                        }
-                    }
-                    else
-                    {
-                        // Put !?,. etc into the list
-                        tags.Add(tkn.Word);
-                    }
-                }
-                // if list is not empty yield the last paragraph
-                yield return getParagraph("");
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
-        }
-
         private string css;
 
         public void LoadCSS(string cssContent)
@@ -121,17 +54,46 @@ namespace LangTools.Core
             css = cssContent;
         }
 
-        public string toHTML(string fileName, List<Token> tokens)
+        public string toHTML(Item root)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append("<html><head><meta charset='utf-8'>");
-            sb.Append(string.Format("<title>{0}</title></head>", fileName));
+            sb.Append(string.Format("<title>{0}</title></head>", root.Name));
             sb.Append("<body>");
             sb.Append("<article>");
-            foreach (string paragraph in new Wrapper(tokens))
+            foreach(Paragraph p in root.Items.OfType<Paragraph>())
             {
-                sb.Append(paragraph);
+                sb.Append("<p>");
+                foreach (Token tkn in p.Tokens)
+                {
+                    if (tkn.Type == TokenType.WORD)
+                    {
+                        string tag;
+                        if (tkn.Stats?.Know == Klass.UNKNOWN)
+                        {
+                            tag = string.Format(
+                                "<span class={0}>{1}</span><sub>{2}</sub>",
+                                tkn.Stats.Know,
+                                tkn.Name,
+                                tkn.Stats.Count);
+                        }
+                        else
+                        {
+                            tag = string.Format(
+                                "<span class={0}>{1}</span>",
+                                tkn.Stats.Know,
+                                tkn.Name);
+                        }
+                        sb.Append(tag);
+                    }
+                    else
+                    {
+                        sb.Append(tkn.Name);
+                    }
+                }
+                sb.Append("</p>");
             }
+
             sb.Append("</article>");
             sb.Append("<style>");
             if (css != null)

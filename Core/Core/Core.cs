@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,45 +8,6 @@ using LangTools.Shared;
 
 namespace LangTools.Core
 {
-    /// <summary>
-    /// Holds data for a single analyzed file.
-    /// </summary>
-    public class Report
-    {
-        public List<Token> Tokens { get; internal set; }
-        public int Size
-        {
-            get
-            {
-                return Tokens.Where(tkn => tkn.Stats != null).Select(tkn => tkn.Stats).Distinct()
-                    .Sum(s => s.Count);
-            }
-        }
-        public int Known
-        {
-            get
-            {
-                return Tokens.Where(tkn => tkn.Stats != null).Select(tkn => tkn.Stats).Distinct()
-                    .Where(s => s.Know == Klass.KNOWN).Sum(s => s.Count);
-            }
-        }
-        public int Maybe
-        {
-            get
-            {
-                return Tokens.Where(tkn => tkn.Stats != null).Select(tkn => tkn.Stats).Distinct()
-                    .Where(s => s.Know == Klass.MAYBE).Sum(s => s.Count);
-            }
-        }
-        public HashSet<Token> UnknownTokens
-        {
-            get
-            {
-                return new HashSet<Token>(Tokens.Where(tkn => tkn.Stats?.Know == Klass.UNKNOWN));
-            }
-        }
-    }
-
     /// <summary>
     /// Class that binds file IO and Lexer class.
     /// </summary>
@@ -67,13 +27,25 @@ namespace LangTools.Core
             this.dictPathes = dNames;
         }
 
-        public Report AnalyzeFile(string path)
+        public Document AnalyzeFile(string path)
         {
             Log.Logger.Debug(string.Format("Analyzing the file: {0}", path));
-            string content;
-            if (IOTools.ReadAllText(path, out content))
+            string[] content;
+            if (IOTools.ReadAllLines(path, out content))
             {
-                return lexer.AnalyzeText(content);
+                // Build composite tree
+                Tokenizer tknz = new Tokenizer();
+                Document root = new Document { Name = Path.GetFileName(path) };
+                foreach(string paragraph in content)
+                {
+                    Item para = new Paragraph();
+                    root.AddItem(para);
+                    foreach (Token token in tknz.Enumerate(paragraph))
+                    {
+                        para.AddItem(token);
+                    }
+                }
+                return lexer.AnalyzeText(root);
             }
             else
             {
@@ -107,7 +79,7 @@ namespace LangTools.Core
     }
 
     /// <summary>
-    /// Transfroms the text into list of marked tokens.
+    /// Uses dictionary to mark word tokens as known.
     /// </summary>
     class Lexer
     {
@@ -150,11 +122,11 @@ namespace LangTools.Core
         public void LoadDictionary(string content)
         {
             content = content.ToLower();
-            foreach(Token token in new Tokenizer(content))
+            foreach(Token token in new Tokenizer().Enumerate(content))
             {
                 if (token.Type == TokenType.WORD)
                 {
-                    dict[token.Word] = Source.ORIGINAL; // Will rewrite on duplicate key.
+                    dict[token.Name] = Source.ORIGINAL; // Will rewrite on duplicate key.
                 }
             }
         }
@@ -208,19 +180,19 @@ namespace LangTools.Core
         }
 
         /// <summary>
-        /// Turns the text into list of marked tokens and produces stat report.
+        /// Turns the text document into marked document.
         /// </summary>
         /// <param name="content"></param>
         /// <returns></returns>
-        public Report AnalyzeText(string content)
+        public Document AnalyzeText(Document root)
         {
-            List<Token> tokenList = new List<Token>(new Tokenizer(content));
-            tokenList.ForEach(AnalyzeToken);
-
-            return new Report
+            // prevent cyclic reference
+            foreach(Token tkn in root.Tokens)
             {
-                Tokens = tokenList
-            };
+                AnalyzeToken(tkn);
+            }
+
+            return root;
         }
 
         /// <summary>
@@ -276,10 +248,12 @@ namespace LangTools.Core
         }
     }
 
+    // TODO separate into 2 classes
     /// <summary>
-    /// Takes a string and returns iterator of tokens.
+    /// Class that enumerates, counts and yields tokens for a
+    /// common entity of strings (usually a file).
     /// </summary>
-    class Tokenizer : IEnumerable<Token>
+    class Tokenizer
     {
         // Prepare regex statement
         // Any word including words with hebrew specific chars
@@ -289,20 +263,9 @@ namespace LangTools.Core
         //   \p{L}+      any character of: UTF macro 'Letter' 1 or more times
         // )?       # optionally
         private static Regex rx = new Regex(@"\p{L}+([״'׳""]\p{L}+)?", RegexOptions.Compiled);
-        private string content;
         private Dictionary<string, TokenStats> uniqueWords = new Dictionary<string, TokenStats>();
 
-        public Tokenizer(string content)
-        {
-            this.content = content;
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-
-        public IEnumerator<Token> GetEnumerator()
+        public IEnumerable<Token> Enumerate(string content)
         {
             // Calculate string bounds
             int position = 0;
@@ -316,7 +279,7 @@ namespace LangTools.Core
                     {
                         yield return new Token
                         {
-                            Word = content.Substring(position, match.Index - position),
+                            Name = content.Substring(position, match.Index - position),
                             Type = TokenType.NONWORD
                         };
                     }
@@ -325,7 +288,7 @@ namespace LangTools.Core
                     string lWord = word.ToLower();
                     Token tkn = new Token
                     {
-                        Word = word,
+                        Name = word,
                         Type = TokenType.WORD
                     };
                     TokenStats stats;
@@ -352,8 +315,157 @@ namespace LangTools.Core
                 else
                 {
                     // No words left, return some trailing characters
-                    yield return new Token {Word = content.Substring(position), Type = TokenType.NONWORD };
+                    yield return new Token {Name = content.Substring(position), Type = TokenType.NONWORD };
                     position = content.Length;
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Abstact composite class that represents a node of document tree.
+    /// </summary>
+    public abstract class Item
+    {
+        // List of subnodes.
+        protected List<Item> items = new List<Item>();
+        /// <summary>
+        /// Name of the node
+        /// </summary>
+        public virtual string Name { get; set; }
+        /// <summary>
+        /// Number of word tokens in the node and subnodes.
+        /// </summary>
+        public virtual int Size
+        {
+            get
+            {
+                return Tokens.Sum(t => t.Size);
+            }
+        }
+        /// <summary>
+        /// Number of known word tokens in the node.
+        /// </summary>
+        public virtual int Known
+        {
+            get
+            {
+                return Tokens.Sum(t => t.Known);
+            }
+        }
+        /// <summary>
+        /// Number of words that might be known.
+        /// </summary>
+        public virtual int Maybe
+        {
+            get
+            {
+                return Tokens.Sum(t => t.Maybe);
+            }
+        }
+        /// <summary>
+        /// Enumerable of word tokens of the node and subnodes.
+        /// </summary>
+        public abstract IEnumerable<Token> Tokens { get; }
+        /// <summary>
+        /// Enumerable of subnodes.
+        /// </summary>
+        public virtual IEnumerable<Item> Items
+        {
+            get
+            {
+                return items;
+            }
+        }
+        /// <summary>
+        /// Adds subnode.
+        /// </summary>
+        /// <param name="item"></param>
+        public virtual void AddItem(Item item)
+        {
+            items.Add(item);
+        }
+    }
+
+    /// <summary>
+    /// Word token node.
+    /// </summary>
+    public class Token : Item
+    {
+        public TokenType Type { get; set; }
+        public TokenStats Stats { get; set; }
+
+        // Node implementation.
+        public override int Size
+        {
+            get
+            {
+                return this.Type == TokenType.WORD ? 1 : 0;
+            }
+        }
+        public override int Known
+        {
+            get
+            {
+                return this.Stats?.Know == Klass.KNOWN ? 1 : 0;
+            }
+        }
+        public override int Maybe
+        {
+            get
+            {
+                return this.Stats?.Know == Klass.MAYBE ? 1 : 0;
+            }
+        }
+        // Token has no subnodes.
+        public override IEnumerable<Token> Tokens
+        {
+            get
+            {
+                // Empty list
+                return new Token[0];
+            }
+        }
+        public override IEnumerable<Item> Items
+        {
+            get
+            {
+                // Empty list
+                return new Token[0];
+            }
+        }
+        public override void AddItem(Item item) { /* Do nothing */ }
+    }
+
+    /// <summary>
+    /// Paragraph node.
+    /// </summary>
+    public class Paragraph : Item
+    {
+        public override IEnumerable<Token> Tokens
+        {
+            get
+            {
+                return this.items.OfType<Token>();
+            }
+        }
+    }
+    /// <summary>
+    /// Document node.
+    /// </summary>
+    public class Document : Item
+    {
+        public override IEnumerable<Token> Tokens
+        {
+            get
+            {
+                // Prevent cyclic ref and filter errs. Document should contain only paragraphs.
+                foreach (var p in this.items.OfType<Paragraph>())
+                {
+                    foreach (Token token in p.Tokens)
+                    {
+                        yield return token;
+                    }
                 }
             }
         }
@@ -380,17 +492,8 @@ namespace LangTools.Core
     }
 
     /// <summary>
-    /// Word token.
-    /// </summary>
-    public struct Token
-    {
-        public string Word { get; set; }
-        public TokenType Type { get; set; }
-        public TokenStats Stats { get; set; }
-    }
-
-    /// <summary>
     /// Object that holds stats for one word.
+    /// This object can be shared among several word tokens.
     /// </summary>
     public class TokenStats
     {
