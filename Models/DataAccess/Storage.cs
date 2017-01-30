@@ -13,7 +13,7 @@ namespace LangTools.Data
         // DB connection
         private SQLiteConnection dbConn;
         // temp variables to store data for transactions
-        private Dictionary<string, HashSet<Token>> tokenList = new Dictionary<string, HashSet<Token>>();
+        private Dictionary<string, IEnumerable<TokenStats>> tokenList = new Dictionary<string, IEnumerable<TokenStats>>();
         private List<FileStats> statList = new List<FileStats>();
 
         public Storage(string directory)
@@ -350,7 +350,7 @@ namespace LangTools.Data
         /// </summary>
         /// <param name="filePath"></param>
         /// <param name="unknownWords"></param>
-        public void UpdateWords(string filePath, HashSet<Token> tokens)
+        public void UpdateWords(string filePath, IEnumerable<TokenStats> tokens)
         {
             tokenList.Add(filePath, tokens);
         }
@@ -363,25 +363,25 @@ namespace LangTools.Data
             using (SQLiteTransaction transaction = dbConn.BeginTransaction())
             {
                 string command = "INSERT INTO Words VALUES(@word, @file, @quantity)";
-                foreach (string filePath in tokenList.Keys)
+                foreach (KeyValuePair<string, IEnumerable<TokenStats>> kvp in tokenList)
                 {
                     SQLiteParameter pathParam = new SQLiteParameter("@file");
-                    pathParam.Value = filePath;
+                    pathParam.Value = kvp.Key;
                     pathParam.DbType = System.Data.DbType.String;
 
                     using (SQLiteCommand cmd = new SQLiteCommand(dbConn))
                     {
                         cmd.CommandText = command;
                         cmd.Parameters.Add(pathParam);
-                        foreach (var item in tokenList[filePath])
+                        foreach (var item in kvp.Value)
                         {
                             SQLiteParameter param = new SQLiteParameter("@word");
-                            param.Value = item.Stats.LWord;
+                            param.Value = item.LWord;
                             pathParam.DbType = System.Data.DbType.String;
                             cmd.Parameters.Add(param);
 
                             param = new SQLiteParameter("@quantity");
-                            param.Value = item.Stats.Count;
+                            param.Value = item.Count;
                             cmd.Parameters.Add(param);
 
                             cmd.ExecuteNonQuery();

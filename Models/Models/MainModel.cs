@@ -607,13 +607,11 @@ namespace LangTools.Models
                     // Update stats in the DB
                     storage.UpdateStats(file);
                     // Add new list of unknown words into DB
-                    var newWords = from tkn in docRoot.Tokens
-                                   group tkn by tkn.Stats into g
-                                   let t = g.First()
-                                   where t.Stats?.Know == Klass.UNKNOWN
-                                   select t;
-                    // TODO Drop hashset ? drop Tokens, use TokenStats instead
-                    storage.UpdateWords(file.FilePath, new HashSet<Token>(newWords));
+                    var newWords = docRoot.Tokens
+                                   .Where(t => t.Stats?.Know == Klass.UNKNOWN)
+                                   .Select(t => t.Stats)
+                                   .Distinct();
+                    storage.UpdateWords(file.FilePath, newWords);
                 }
                 progress.Report(Tuple.Create(percentValue, file.FileName));
             }

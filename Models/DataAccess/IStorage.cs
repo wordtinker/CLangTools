@@ -15,7 +15,7 @@ namespace LangTools.Data
         void RemoveFileStats(FileStats file);
         void UpdateStats(FileStats stats);
         void CommitStats();
-        void UpdateWords(string filePath, HashSet<Token> tokens);
+        void UpdateWords(string filePath, IEnumerable<TokenStats> tokens);
         void CommitWords();
         Dictionary<string, int> GetUnknownWords(FileStats fs);
         Dictionary<string, int> GetUnknownWords(Lingva lang, string project);
