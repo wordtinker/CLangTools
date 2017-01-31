@@ -47,6 +47,7 @@
   <ItemGroup>
     <Compile Include="Core\Core.cs" />
     <Compile Include="Core\Printer.cs" />
+    <Compile Include="Core\Tokens.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

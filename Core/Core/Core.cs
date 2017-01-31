@@ -263,7 +263,7 @@ namespace LangTools.Core
         //   \p{L}+      any character of: UTF macro 'Letter' 1 or more times
         // )?       # optionally
         private static Regex rx = new Regex(@"\p{L}+([״'׳""]\p{L}+)?", RegexOptions.Compiled);
-        private Dictionary<string, TokenStats> uniqueWords = new Dictionary<string, TokenStats>();
+        private TokenStatsFlyweightFactory factory = new TokenStatsFlyweightFactory();
 
         public IEnumerable<Token> Enumerate(string content)
         {
@@ -284,30 +284,12 @@ namespace LangTools.Core
                         };
                     }
                     // Return the word
-                    string word = match.Value;
-                    string lWord = word.ToLower();
                     Token tkn = new Token
                     {
-                        Name = word,
+                        Name = match.Value,
                         Type = TokenType.WORD
                     };
-                    TokenStats stats;
-                    if (uniqueWords.ContainsKey(lWord))
-                    {
-                        stats = uniqueWords[lWord];
-                        stats.Count += 1;
-                    }
-                    else
-                    {
-                        stats = new TokenStats
-                        {
-                            LWord = lWord,
-                            Know = Klass.UNDECIDED,
-                            Count = 1
-                        };
-                        uniqueWords.Add(lWord, stats);
-                    }
-                    tkn.Stats = stats;
+                    tkn.Stats = factory.GetTokenStats(tkn.Name); ;
                     yield return tkn;
                     // Move position behind the word
                     position = match.Index + match.Length;
@@ -320,185 +302,5 @@ namespace LangTools.Core
                 }
             }
         }
-    }
-
-    /// <summary>
-    /// Abstact composite class that represents a node of document tree.
-    /// </summary>
-    public abstract class Item
-    {
-        // List of subnodes.
-        protected List<Item> items = new List<Item>();
-        /// <summary>
-        /// Name of the node
-        /// </summary>
-        public virtual string Name { get; set; }
-        /// <summary>
-        /// Number of word tokens in the node and subnodes.
-        /// </summary>
-        public virtual int Size
-        {
-            get
-            {
-                return Tokens.Sum(t => t.Size);
-            }
-        }
-        /// <summary>
-        /// Number of known word tokens in the node.
-        /// </summary>
-        public virtual int Known
-        {
-            get
-            {
-                return Tokens.Sum(t => t.Known);
-            }
-        }
-        /// <summary>
-        /// Number of words that might be known.
-        /// </summary>
-        public virtual int Maybe
-        {
-            get
-            {
-                return Tokens.Sum(t => t.Maybe);
-            }
-        }
-        /// <summary>
-        /// Enumerable of word tokens of the node and subnodes.
-        /// </summary>
-        public abstract IEnumerable<Token> Tokens { get; }
-        /// <summary>
-        /// Enumerable of subnodes.
-        /// </summary>
-        public virtual IEnumerable<Item> Items
-        {
-            get
-            {
-                return items;
-            }
-        }
-        /// <summary>
-        /// Adds subnode.
-        /// </summary>
-        /// <param name="item"></param>
-        public virtual void AddItem(Item item)
-        {
-            items.Add(item);
-        }
-    }
-
-    /// <summary>
-    /// Word token node.
-    /// </summary>
-    public class Token : Item
-    {
-        public TokenType Type { get; set; }
-        public TokenStats Stats { get; set; }
-
-        // Node implementation.
-        public override int Size
-        {
-            get
-            {
-                return this.Type == TokenType.WORD ? 1 : 0;
-            }
-        }
-        public override int Known
-        {
-            get
-            {
-                return this.Stats?.Know == Klass.KNOWN ? 1 : 0;
-            }
-        }
-        public override int Maybe
-        {
-            get
-            {
-                return this.Stats?.Know == Klass.MAYBE ? 1 : 0;
-            }
-        }
-        // Token has no subnodes.
-        public override IEnumerable<Token> Tokens
-        {
-            get
-            {
-                // Empty list
-                return new Token[0];
-            }
-        }
-        public override IEnumerable<Item> Items
-        {
-            get
-            {
-                // Empty list
-                return new Token[0];
-            }
-        }
-        public override void AddItem(Item item) { /* Do nothing */ }
-    }
-
-    /// <summary>
-    /// Paragraph node.
-    /// </summary>
-    public class Paragraph : Item
-    {
-        public override IEnumerable<Token> Tokens
-        {
-            get
-            {
-                return this.items.OfType<Token>();
-            }
-        }
-    }
-    /// <summary>
-    /// Document node.
-    /// </summary>
-    public class Document : Item
-    {
-        public override IEnumerable<Token> Tokens
-        {
-            get
-            {
-                // Prevent cyclic ref and filter errs. Document should contain only paragraphs.
-                foreach (var p in this.items.OfType<Paragraph>())
-                {
-                    foreach (Token token in p.Tokens)
-                    {
-                        yield return token;
-                    }
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// Word token type.
-    /// </summary>
-    public enum TokenType
-    {
-        WORD,
-        NONWORD
-    }
-
-    /// <summary>
-    /// Word token knowledge type.
-    /// </summary>
-    public enum Klass
-    {
-        UNDECIDED,
-        KNOWN,
-        MAYBE,
-        UNKNOWN
-    }
-
-    /// <summary>
-    /// Object that holds stats for one word.
-    /// This object can be shared among several word tokens.
-    /// </summary>
-    public class TokenStats
-    {
-        public string LWord { get; set; } // lower case Word
-        public int Count { get; set; } // number of occurences in a text
-        public Klass Know { get; set; }
     }
 }
