@@ -81,7 +81,7 @@ namespace LangTools.Core
                         {
                             tag = string.Format(
                                 "<span class={0}>{1}</span>",
-                                tkn.Stats.Know,
+                                tkn.Stats?.Know,
                                 tkn.Name);
                         }
                         sb.Append(tag);

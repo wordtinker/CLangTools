@@ -34,7 +34,7 @@ namespace LangTools.Core
             if (IOTools.ReadAllLines(path, out content))
             {
                 // Build composite tree
-                Tokenizer tknz = new Tokenizer();
+                TokenizerWithStats tknz = new TokenizerWithStats();
                 Document root = new Document { Name = Path.GetFileName(path) };
                 foreach(string paragraph in content)
                 {
@@ -122,7 +122,7 @@ namespace LangTools.Core
         public void LoadDictionary(string content)
         {
             content = content.ToLower();
-            foreach(Token token in new Tokenizer().Enumerate(content))
+            foreach(Token token in Tokenizer.Enumerate(content))
             {
                 if (token.Type == TokenType.WORD)
                 {
@@ -201,7 +201,7 @@ namespace LangTools.Core
         /// <param name="token"></param>
         private void AnalyzeToken(Token token)
         {
-            if (token.Type == TokenType.WORD && token.Stats.Know == Klass.UNDECIDED)
+            if (token.Type == TokenType.WORD && token.Stats?.Know == Klass.UNDECIDED)
             {
                 if (dict.ContainsKey(token.Stats.LWord))
                 {
@@ -248,12 +248,31 @@ namespace LangTools.Core
         }
     }
 
-    // TODO separate into 2 classes
     /// <summary>
-    /// Class that enumerates, counts and yields tokens for a
-    /// common entity of strings (usually a file).
+    /// Class that yileds word tokens from a string
+    /// with bound TokenStats object for each token.
     /// </summary>
-    class Tokenizer
+    class TokenizerWithStats
+    {
+        private TokenStatsFlyweightFactory factory = new TokenStatsFlyweightFactory();
+        
+        public IEnumerable<Token> Enumerate(string content)
+        {
+            foreach (Token tkn in Tokenizer.Enumerate(content))
+            {
+                if (tkn.Type == TokenType.WORD)
+                {
+                    tkn.Stats = factory.GetTokenStats(tkn.Name);
+                }
+                yield return tkn;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Class that yields word tokens from a string.
+    /// </summary>
+    static class Tokenizer
     {
         // Prepare regex statement
         // Any word including words with hebrew specific chars
@@ -263,13 +282,11 @@ namespace LangTools.Core
         //   \p{L}+      any character of: UTF macro 'Letter' 1 or more times
         // )?       # optionally
         private static Regex rx = new Regex(@"\p{L}+([״'׳""]\p{L}+)?", RegexOptions.Compiled);
-        private TokenStatsFlyweightFactory factory = new TokenStatsFlyweightFactory();
 
-        public IEnumerable<Token> Enumerate(string content)
+        public static IEnumerable<Token> Enumerate(string content)
         {
             // Calculate string bounds
             int position = 0;
-
             while (position < content.Length)
             {
                 Match match = rx.Match(content, position);
@@ -289,7 +306,6 @@ namespace LangTools.Core
                         Name = match.Value,
                         Type = TokenType.WORD
                     };
-                    tkn.Stats = factory.GetTokenStats(tkn.Name); ;
                     yield return tkn;
                     // Move position behind the word
                     position = match.Index + match.Length;
