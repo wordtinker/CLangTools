@@ -611,13 +611,15 @@ namespace LangTools.Models
                                    .Where(t => t.Stats?.Know == Klass.UNKNOWN)
                                    .Select(t => t.Stats)
                                    .Distinct();
+                    // TODO simplify DB code.
+                    // commit prevents memory leak
                     storage.UpdateWords(file.FilePath, newWords);
+                    storage.CommitWords();
                 }
                 progress.Report(Tuple.Create(percentValue, file.FileName));
             }
             // Commit changes to DB
             storage.CommitStats();
-            storage.CommitWords();
 
             // Start watching for files again
             filesWatcher.EnableRaisingEvents = true;
