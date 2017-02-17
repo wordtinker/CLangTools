@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using LangTools.Shared;
 using LangTools.Core;
+using System.Collections.ObjectModel;
 
 namespace LangTools.Models
 {
@@ -39,7 +40,7 @@ namespace LangTools.Models
 
         private WatchTower watcher;
 
-        private List<Lingva> languages = new List<Lingva>();
+        public ObservableCollection<Lingva> Languages { get; } = new ObservableCollection<Lingva>();
         private List<string> projects = new List<string>();
         private List<Dict> dicts = new List<Dict>();
         private List<FileStats> files = new List<FileStats>();
@@ -81,8 +82,6 @@ namespace LangTools.Models
         public event EventHandler<TypedEventArgs<Dict>> DictRemoved;
         public event EventHandler<TypedEventArgs<FileStats>> FileStatsAdded;
         public event EventHandler<TypedEventArgs<FileStats>> FileStatsRemoved;
-        public event EventHandler<TypedEventArgs<Lingva>> LanguageAdded;
-        public event EventHandler<TypedEventArgs<Lingva>> LanguageRemoved;
 
         /// <summary>
         /// Method that sets new storage for model.
@@ -99,10 +98,7 @@ namespace LangTools.Models
         /// </summary>
         public void InitializeLanguages()
         {
-            foreach (Lingva lang in storage.GetLanguages())
-            {
-                AddLanguage(lang);
-            }
+            storage.GetLanguages().ForEach(Languages.Add);
         }
 
         // Private signaling methods
@@ -140,18 +136,6 @@ namespace LangTools.Models
         {
             files.Remove(fs);
             FileStatsRemoved?.Invoke(this, new TypedEventArgs<FileStats>(fs));
-        }
-
-        private void AddLanguage(Lingva language)
-        {
-            languages.Add(language);
-            LanguageAdded?.Invoke(this, new TypedEventArgs<Lingva>(language));
-        }
-
-        private void RemoveLanguage(Lingva language)
-        {
-            languages.Remove(language);
-            LanguageRemoved?.Invoke(this, new TypedEventArgs<Lingva>(language));
         }
 
         // Methods
@@ -334,7 +318,7 @@ namespace LangTools.Models
             // Add new language to DB.
             storage.AddLanguage(newLang);
             EnsureCorpusStructure(newLang.Folder);
-            AddLanguage(newLang);
+            Languages.Add(newLang);
         }
 
         /// <summary>
@@ -345,7 +329,7 @@ namespace LangTools.Models
         {
             // Remove old language from DB
             storage.RemoveLanguage(language);
-            RemoveLanguage(language);
+            Languages.Remove(language);
         }
 
         /// <summary>
@@ -521,12 +505,12 @@ namespace LangTools.Models
 
         public bool LanguageExists(string lang)
         {
-            return languages.Any(l => l.Language == lang);
+            return Languages.Any(l => l.Language == lang);
         }
 
         public bool FolderExists(string dir)
         {
-            return languages.Any(l => l.Folder == dir);
+            return Languages.Any(l => l.Folder == dir);
         }
     }
 }

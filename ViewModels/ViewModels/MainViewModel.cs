@@ -8,6 +8,7 @@ using Prism.Mvvm;
 using Prism.Commands;
 using L = LangTools.Shared.Log;
 using LangTools.Data;
+using System.Collections.Specialized;
 
 namespace LangTools.ViewModels
 {
@@ -70,6 +71,7 @@ namespace LangTools.ViewModels
         // Constructors
         public MainViewModel(IUIMainWindowService windowService)
         {
+            // TODO move to builder
             IStorage storage = new Storage(windowService.AppDir);
             model = MainModel.Instance;
             model.SetStorage(storage);
@@ -82,8 +84,23 @@ namespace LangTools.ViewModels
             L.Logger.Debug("MainView is starting.");
 
             Languages = new ObservableCollection<LingvaViewModel>();
-            model.LanguageAdded += (obj, args) => Languages.Add(new LingvaViewModel(args.Content));
-            model.LanguageRemoved += (obj, args) => Languages.Remove(new LingvaViewModel(args.Content));
+            model.Languages.CollectionChanged += (obj, args) =>
+            {
+                if (args.Action == NotifyCollectionChangedAction.Add)
+                {
+                    foreach (Lingva item in args.NewItems)
+                    {
+                        Languages.Add(new LingvaViewModel(item));
+                    }
+                }
+                else if (args.Action == NotifyCollectionChangedAction.Remove)
+                {
+                    foreach (Lingva item in args.OldItems)
+                    {
+                        Languages.Remove(new LingvaViewModel(item));
+                    }
+                }
+            };
 
             Projects = new ObservableCollection<string>();
             model.ProjectAdded += (obj, args) => windowService.BeginInvoke(
