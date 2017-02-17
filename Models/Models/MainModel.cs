@@ -41,7 +41,7 @@ namespace LangTools.Models
         private WatchTower watcher;
 
         public ObservableCollection<Lingva> Languages { get; } = new ObservableCollection<Lingva>();
-        private List<string> projects = new List<string>();
+        public ObservableCollection<string> Projects { get; } = new ObservableCollection<string>();
         private List<Dict> dicts = new List<Dict>();
         private List<FileStats> files = new List<FileStats>();
 
@@ -76,8 +76,6 @@ namespace LangTools.Models
             }
         }
 
-        public event EventHandler<TypedEventArgs<string>> ProjectAdded;
-        public event EventHandler<TypedEventArgs<string>> ProjectRemoved;
         public event EventHandler<TypedEventArgs<Dict>> DictAdded;
         public event EventHandler<TypedEventArgs<Dict>> DictRemoved;
         public event EventHandler<TypedEventArgs<FileStats>> FileStatsAdded;
@@ -102,18 +100,6 @@ namespace LangTools.Models
         }
 
         // Private signaling methods
-        internal void AddProject(string newProject)
-        {
-            projects.Add(newProject);
-            ProjectAdded?.Invoke(this, new TypedEventArgs<string>(newProject));
-        }
-
-        internal void RemoveProject(string oldProject)
-        {
-            projects.Remove(oldProject);
-            ProjectRemoved?.Invoke(this, new TypedEventArgs<string>(oldProject));
-        }
-
         internal void AddDict(Dict dictionary)
         {
             dicts.Add(dictionary);
@@ -150,9 +136,9 @@ namespace LangTools.Models
             // from raising event that lead to insertion into Null project list.
             watcher.ToggleOffCorpus();
             // Remove old projects
-            while (projects.Count > 0)
+            while (Projects.Count > 0)
             {
-                RemoveProject(projects[0]);
+                Projects.RemoveAt(0);
             };
         }
 
@@ -180,7 +166,7 @@ namespace LangTools.Models
             // Add new projects
             foreach (string prj in projectsInDir)
             {
-                AddProject(prj);
+                Projects.Add(prj);
             }
         }
 

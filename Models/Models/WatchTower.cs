@@ -20,12 +20,12 @@ namespace LangTools.Models
             corpusWatcher.Filter = "*.*";
             // Remark : deleting of old projects from storage is postponed
             // until the next time LanguageChanged is called.
-            corpusWatcher.Created += (obj, e) => model.AddProject(e.Name);
-            corpusWatcher.Deleted += (obj, e) => model.RemoveProject(e.Name);
+            corpusWatcher.Created += (obj, e) => model.Projects.Add(e.Name);
+            corpusWatcher.Deleted += (obj, e) => model.Projects.Remove(e.Name);
             corpusWatcher.Renamed += (obj, e) =>
             {
-                model.RemoveProject(e.OldName);
-                model.AddProject(e.Name);
+                model.Projects.Remove(e.OldName);
+                model.Projects.Add(e.Name);
             };
 
             // Project specific dictionaries Watcher

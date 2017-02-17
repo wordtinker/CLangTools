@@ -103,13 +103,23 @@ namespace LangTools.ViewModels
             };
 
             Projects = new ObservableCollection<string>();
-            model.ProjectAdded += (obj, args) => windowService.BeginInvoke(
-                new Action(() => Projects.Add(args.Content)
-                ));
-
-            model.ProjectRemoved += (obj, args) => windowService.BeginInvoke(
-                new Action(() => Projects.Remove(args.Content)
-                ));
+            model.Projects.CollectionChanged += (obj, args) =>
+            {
+                if (args.Action == NotifyCollectionChangedAction.Add)
+                {
+                    foreach (string item in args.NewItems)
+                    {
+                        Projects.Add(item);
+                    }
+                }
+                else if (args.Action == NotifyCollectionChangedAction.Remove)
+                {
+                    foreach (string item in args.OldItems)
+                    {
+                        Projects.Remove(item);
+                    }
+                }
+            };
 
             Dictionaries = new ObservableCollection<DictViewModel>();
             model.DictAdded += (obj, args) => windowService.BeginInvoke(
