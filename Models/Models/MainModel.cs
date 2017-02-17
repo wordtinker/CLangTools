@@ -106,116 +106,52 @@ namespace LangTools.Models
         }
 
         // Private signaling methods
-        private void onProjectAdded(TypedEventArgs<string> newProject)
-        {
-            if (ProjectAdded != null)
-            {
-                ProjectAdded(this, newProject);
-            }
-        }
-
-        private void onProjectRemoved(TypedEventArgs<string> oldProject)
-        {
-            if (ProjectRemoved != null)
-            {
-                ProjectRemoved(this, oldProject);
-            }
-        }
-
         internal void AddProject(string newProject)
         {
             projects.Add(newProject);
-            onProjectAdded(new TypedEventArgs<string>(newProject));
+            ProjectAdded?.Invoke(this, new TypedEventArgs<string>(newProject));
         }
 
         internal void RemoveProject(string oldProject)
         {
             projects.Remove(oldProject);
-            onProjectRemoved(new TypedEventArgs<string>(oldProject));
-        }
-
-        private void onDictAdded(TypedEventArgs<Dict> newDict)
-        {
-            if (DictAdded != null)
-            {
-                DictAdded(this, newDict);
-            }
-        }
-
-        private void onDictRemoved(TypedEventArgs<Dict> oldDict)
-        {
-            if(DictRemoved != null)
-            {
-                DictRemoved(this, oldDict);
-            }
+            ProjectRemoved?.Invoke(this, new TypedEventArgs<string>(oldProject));
         }
 
         internal void AddDict(Dict dictionary)
         {
             dicts.Add(dictionary);
-            onDictAdded(new TypedEventArgs<Dict>(dictionary));
+            DictAdded?.Invoke(this, new TypedEventArgs<Dict>(dictionary));
         }
 
         internal void RemoveDict(Dict dictionary)
         {
             dicts.Remove(dictionary);
-            onDictRemoved(new TypedEventArgs<Dict>(dictionary));
-        }
-
-        private void onFileStatsAdded(TypedEventArgs<FileStats> newFileStats)
-        {
-            if(FileStatsAdded != null)
-            {
-                FileStatsAdded(this, newFileStats);
-            }
-        }
-
-        private void onFileStatsRemoved(TypedEventArgs<FileStats> oldFileStats)
-        {
-            if(FileStatsRemoved != null)
-            {
-                FileStatsRemoved(this, oldFileStats);
-            }
+            DictRemoved?.Invoke(this, new TypedEventArgs<Dict>(dictionary));
         }
 
         internal void AddFileStats(FileStats fs)
         {
             files.Add(fs);
-            onFileStatsAdded(new TypedEventArgs<FileStats>(fs));
+            FileStatsAdded?.Invoke(this, new TypedEventArgs<FileStats>(fs));
         }
 
         internal void RemoveFileStats(FileStats fs)
         {
             files.Remove(fs);
-            onFileStatsRemoved(new TypedEventArgs<FileStats>(fs));
-        }
-
-        private void onLanguageAdded(TypedEventArgs<Lingva> newLang)
-        {
-            if (LanguageAdded != null)
-            {
-                LanguageAdded(this, newLang);
-            }
-        }
-
-        private void onLanguageRemoved(TypedEventArgs<Lingva> oldLang)
-        {
-            if (LanguageRemoved != null)
-            {
-                LanguageRemoved(this, oldLang);
-            }
+            FileStatsRemoved?.Invoke(this, new TypedEventArgs<FileStats>(fs));
         }
 
         private void AddLanguage(Lingva language)
         {
             languages.Add(language);
-            onLanguageAdded(new TypedEventArgs<Lingva>(language));
+            LanguageAdded?.Invoke(this, new TypedEventArgs<Lingva>(language));
         }
 
         private void RemoveLanguage(Lingva language)
         {
             languages.Remove(language);
-            onLanguageRemoved(new TypedEventArgs<Lingva>(language));
+            LanguageRemoved?.Invoke(this, new TypedEventArgs<Lingva>(language));
         }
 
         // Methods
