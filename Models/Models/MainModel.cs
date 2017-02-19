@@ -116,10 +116,10 @@ namespace LangTools.Models
                 CorpusDir);
 
             IEnumerable<string> projectsInDir;
+            // Start watching new language corpus folder
+            watcher.ToggleOnCorpus(corpusDir);
             if (IOTools.ListDirectories(corpusDir, out projectsInDir))
             {
-                // Start watching new language corpus folder
-                watcher.ToggleOnCorpus(corpusDir);
                 // Remove old unused projects from DB
                 RemoveOldProjects(projectsInDir, currentLanguage);
             }
@@ -263,7 +263,6 @@ namespace LangTools.Models
         {
             // Add new language to DB.
             storage.AddLanguage(newLang);
-            EnsureCorpusStructure(newLang.Folder);
             Languages.Add(newLang);
         }
 
@@ -276,32 +275,6 @@ namespace LangTools.Models
             // Remove old language from DB
             storage.RemoveLanguage(language);
             Languages.Remove(language);
-        }
-
-        /// <summary>
-        /// Creates folder structer for the language.
-        /// </summary>
-        /// <param name="directory"></param>
-        private void EnsureCorpusStructure(string directory)
-        {
-            // Define subfolders names
-            string corpusDir = Path.Combine(directory, CorpusDir);
-            string dicDir = Path.Combine(directory, DicDir);
-            string outputDir = Path.Combine(directory, OutDir);
-
-            // Create subfolders
-            try
-            {
-                Directory.CreateDirectory(corpusDir);
-                Directory.CreateDirectory(dicDir);
-                Directory.CreateDirectory(outputDir);
-            }
-            catch (Exception e)
-            {
-                // Not a critical error, could be fixed later.
-                string msg = string.Format("Something is wrong during subfolder creation: {0}", e.ToString());
-                Log.Logger.Error(msg);
-            }
         }
 
         /// <summary>

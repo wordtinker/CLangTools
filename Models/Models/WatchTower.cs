@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using LangTools.Shared;
+using System;
+using System.IO;
 
 namespace LangTools.Models
 {
@@ -128,8 +130,18 @@ namespace LangTools.Models
         public void ToggleOnCorpus(string corpusDir)
         {
             // TODO drop corpusDir
-            corpusWatcher.Path = corpusDir;
-            corpusWatcher.EnableRaisingEvents = true;
+            try
+            {
+                Directory.CreateDirectory(corpusDir);
+                corpusWatcher.Path = corpusDir;
+                corpusWatcher.EnableRaisingEvents = true;
+            }
+            catch (Exception e)
+            {
+                // Not a critical error, could be fixed later.
+                string msg = string.Format("Something is wrong during subfolder creation or watching: {0}", e.ToString());
+                Log.Logger.Error(msg);
+            }
         }
 
         public void ToggleOffCorpus()
@@ -139,17 +151,26 @@ namespace LangTools.Models
 
         public void ToggleOnProject()
         {
-            // folder must exist before we start watching
-            Directory.CreateDirectory(model.ProjectDicPath);
-            specDictWatcher.Path = model.ProjectDicPath;
-            Directory.CreateDirectory(model.GenDicPath);
-            genDictWatcher.Path = model.GenDicPath;
-            Directory.CreateDirectory(model.ProjectFilesPath);
-            filesWatcher.Path = model.ProjectFilesPath;
+            try
+            {
+                // folder must exist before we start watching
+                Directory.CreateDirectory(model.ProjectDicPath);
+                specDictWatcher.Path = model.ProjectDicPath;
+                Directory.CreateDirectory(model.GenDicPath);
+                genDictWatcher.Path = model.GenDicPath;
+                Directory.CreateDirectory(model.ProjectFilesPath);
+                filesWatcher.Path = model.ProjectFilesPath;
 
-            specDictWatcher.EnableRaisingEvents = true;
-            genDictWatcher.EnableRaisingEvents = true;
-            filesWatcher.EnableRaisingEvents = true;
+                specDictWatcher.EnableRaisingEvents = true;
+                genDictWatcher.EnableRaisingEvents = true;
+                filesWatcher.EnableRaisingEvents = true;
+            }
+            catch (Exception e)
+            {
+                // Not a critical error, could be fixed later.
+                string msg = string.Format("Something is wrong during subfolder creation or watching: {0}", e.ToString());
+                Log.Logger.Error(msg);
+            }
         }
 
         public void ToggleOffProject()
