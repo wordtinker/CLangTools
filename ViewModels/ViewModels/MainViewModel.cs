@@ -12,6 +12,37 @@ using System.Collections.Specialized;
 
 namespace LangTools.ViewModels
 {
+    // TODO desc
+    internal class CollectionBinder<T>
+    {
+        private Action<T> addition;
+        private Action<T> deletion;
+
+        public CollectionBinder(Action<T> addition, Action<T> deletion)
+        {
+            this.addition = addition;
+            this.deletion = deletion;
+        }
+
+        public void Connect(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (e.Action == NotifyCollectionChangedAction.Add)
+            {
+                foreach (T item in e.NewItems)
+                {
+                    addition?.Invoke(item);
+                }
+            }
+            else if (e.Action == NotifyCollectionChangedAction.Remove)
+            {
+                foreach (T item in e.OldItems)
+                {
+                    deletion?.Invoke(item);
+                }
+            }
+        }
+    }
+
     public class MainViewModel : BindableBase
     {
         // Members
@@ -84,86 +115,43 @@ namespace LangTools.ViewModels
             L.Logger.Debug("MainView is starting.");
 
             Languages = new ObservableCollection<LingvaViewModel>();
-            model.Languages.CollectionChanged += (obj, args) =>
-            {
-                if (args.Action == NotifyCollectionChangedAction.Add)
-                {
-                    foreach (Lingva item in args.NewItems)
-                    {
-                        Languages.Add(new LingvaViewModel(item));
-                    }
-                }
-                else if (args.Action == NotifyCollectionChangedAction.Remove)
-                {
-                    foreach (Lingva item in args.OldItems)
-                    {
-                        Languages.Remove(new LingvaViewModel(item));
-                    }
-                }
-            };
+            CollectionBinder<Lingva> langBinder = new CollectionBinder<Lingva>(
+                newLang => Languages.Add(new LingvaViewModel(newLang)),
+                oldLang => Languages.Remove(new LingvaViewModel(oldLang))
+                );
+            model.Languages.CollectionChanged += langBinder.Connect;
 
             Projects = new ObservableCollection<string>();
-            model.Projects.CollectionChanged += (obj, args) =>
-            {
-                if (args.Action == NotifyCollectionChangedAction.Add)
-                {
-                    foreach (string item in args.NewItems)
-                    {
-                        Projects.Add(item);
-                    }
-                }
-                else if (args.Action == NotifyCollectionChangedAction.Remove)
-                {
-                    foreach (string item in args.OldItems)
-                    {
-                        Projects.Remove(item);
-                    }
-                }
-            };
+            CollectionBinder<string> projectBinder = new CollectionBinder<string>(
+                newProject => Projects.Add(newProject),
+                oldProject => Projects.Remove(oldProject)
+                );
+            model.Projects.CollectionChanged += projectBinder.Connect;
 
             Dictionaries = new ObservableCollection<DictViewModel>();
-            model.Dictionaries.CollectionChanged += (obj, args) =>
-            {
-                if (args.Action == NotifyCollectionChangedAction.Add)
-                {
-                    foreach (Dict item in args.NewItems)
-                    {
-                        Dictionaries.Add(new DictViewModel(windowService, item));
-                    }
-                }
-                else if (args.Action == NotifyCollectionChangedAction.Remove)
-                {
-                    foreach (Dict item in args.OldItems)
-                    {
-                        Dictionaries.Remove(new DictViewModel(windowService, item));
-                    }
-                }
-            };
+            CollectionBinder<Dict> dictBinder = new CollectionBinder<Dict>(
+                newDict => Dictionaries.Add(new DictViewModel(windowService, newDict)),
+                oldDict => Dictionaries.Remove(new DictViewModel(windowService, oldDict))
+                );
+            model.Dictionaries.CollectionChanged += dictBinder.Connect;
 
             Files = new ObservableCollection<FileStatsViewModel>();
-            model.Files.CollectionChanged += (obj, args) =>
-            {
-                if (args.Action == NotifyCollectionChangedAction.Add)
+            CollectionBinder<FileStats> fileBinder = new CollectionBinder<FileStats>(
+                newFile =>
                 {
-                    foreach (FileStats item in args.NewItems)
-                    {
-                        FileStatsViewModel fsvm = new FileStatsViewModel(windowService, item);
-                        Files.Add(fsvm);
-                        totalUnknown += fsvm.Unknown.GetValueOrDefault();
-                        TotalWords += fsvm.Size.GetValueOrDefault();
-                    }
-                }
-                else if (args.Action == NotifyCollectionChangedAction.Remove)
+                    FileStatsViewModel fsvm = new FileStatsViewModel(windowService, newFile);
+                    Files.Add(fsvm);
+                    totalUnknown += fsvm.Unknown.GetValueOrDefault();
+                    TotalWords += fsvm.Size.GetValueOrDefault();
+                },
+                oldFile =>
                 {
-                    foreach (FileStats item in args.OldItems)
-                    {
-                        FileStatsViewModel fsvm = new FileStatsViewModel(windowService, item);
-                        Files.Remove(fsvm);
-                        totalUnknown -= fsvm.Unknown.GetValueOrDefault();
-                        TotalWords -= fsvm.Size.GetValueOrDefault();
-                    }
-                }
-            };
+                    FileStatsViewModel fsvm = new FileStatsViewModel(windowService, oldFile);
+                    Files.Remove(fsvm);
+                    totalUnknown -= fsvm.Unknown.GetValueOrDefault();
+                    TotalWords -= fsvm.Size.GetValueOrDefault();
+                });
+            model.Files.CollectionChanged += fileBinder.Connect;
 
             Words = new ObservableCollection<WordViewModel>();
             WordsInProject = new ObservableCollection<WordViewModel>();
