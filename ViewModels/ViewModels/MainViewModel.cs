@@ -17,11 +17,13 @@ namespace LangTools.ViewModels
     {
         private Action<T> addition;
         private Action<T> deletion;
+        private IUIMainWindowService windowService;
 
-        public CollectionBinder(Action<T> addition, Action<T> deletion)
+        public CollectionBinder(Action<T> addition, Action<T> deletion, IUIMainWindowService windowService)
         {
             this.addition = addition;
             this.deletion = deletion;
+            this.windowService = windowService;
         }
 
         public void Connect(object sender, NotifyCollectionChangedEventArgs e)
@@ -30,14 +32,14 @@ namespace LangTools.ViewModels
             {
                 foreach (T item in e.NewItems)
                 {
-                    addition?.Invoke(item);
+                    windowService.BeginInvoke(new Action(() => addition?.Invoke(item)));
                 }
             }
             else if (e.Action == NotifyCollectionChangedAction.Remove)
             {
                 foreach (T item in e.OldItems)
                 {
-                    deletion?.Invoke(item);
+                    windowService.BeginInvoke(new Action(() => deletion?.Invoke(item)));
                 }
             }
         }
@@ -117,21 +119,24 @@ namespace LangTools.ViewModels
             Languages = new ObservableCollection<LingvaViewModel>();
             CollectionBinder<Lingva> langBinder = new CollectionBinder<Lingva>(
                 newLang => Languages.Add(new LingvaViewModel(newLang)),
-                oldLang => Languages.Remove(new LingvaViewModel(oldLang))
+                oldLang => Languages.Remove(new LingvaViewModel(oldLang)),
+                windowService
                 );
             model.Languages.CollectionChanged += langBinder.Connect;
 
             Projects = new ObservableCollection<string>();
             CollectionBinder<string> projectBinder = new CollectionBinder<string>(
                 newProject => Projects.Add(newProject),
-                oldProject => Projects.Remove(oldProject)
+                oldProject => Projects.Remove(oldProject),
+                windowService
                 );
             model.Projects.CollectionChanged += projectBinder.Connect;
 
             Dictionaries = new ObservableCollection<DictViewModel>();
             CollectionBinder<Dict> dictBinder = new CollectionBinder<Dict>(
                 newDict => Dictionaries.Add(new DictViewModel(windowService, newDict)),
-                oldDict => Dictionaries.Remove(new DictViewModel(windowService, oldDict))
+                oldDict => Dictionaries.Remove(new DictViewModel(windowService, oldDict)),
+                windowService
                 );
             model.Dictionaries.CollectionChanged += dictBinder.Connect;
 
@@ -150,7 +155,8 @@ namespace LangTools.ViewModels
                     Files.Remove(fsvm);
                     totalUnknown -= fsvm.Unknown.GetValueOrDefault();
                     TotalWords -= fsvm.Size.GetValueOrDefault();
-                });
+                },
+                windowService);
             model.Files.CollectionChanged += fileBinder.Connect;
 
             Words = new ObservableCollection<WordViewModel>();

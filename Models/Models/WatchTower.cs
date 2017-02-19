@@ -19,7 +19,7 @@ namespace LangTools.Models
             corpusWatcher.NotifyFilter = NotifyFilters.DirectoryName;
             corpusWatcher.Filter = "*.*";
             // Remark : deleting of old projects from storage is postponed
-            // until the next time LanguageChanged is called.
+            // until after next time LanguageChanged is called.
             corpusWatcher.Created += (obj, e) => model.Projects.Add(e.Name);
             corpusWatcher.Deleted += (obj, e) => model.Projects.Remove(e.Name);
             corpusWatcher.Renamed += (obj, e) =>
@@ -128,34 +128,37 @@ namespace LangTools.Models
         public void ToggleOnCorpus(string corpusDir)
         {
             // TODO drop corpusDir
-            //corpusWatcher.Path = corpusDir;
-            //corpusWatcher.EnableRaisingEvents = true;
+            corpusWatcher.Path = corpusDir;
+            corpusWatcher.EnableRaisingEvents = true;
         }
 
         public void ToggleOffCorpus()
         {
-            //corpusWatcher.EnableRaisingEvents = false;
+            corpusWatcher.EnableRaisingEvents = false;
         }
 
         public void ToggleOnProject()
         {
-            // TODO folder must exist before or we will fail
-            //specDictWatcher.Path = model.ProjectDicPath;
-            //genDictWatcher.Path = model.GenDicPath;
-            //filesWatcher.Path = model.ProjectFilesPath;
+            // folder must exist before we start watching
+            Directory.CreateDirectory(model.ProjectDicPath);
+            specDictWatcher.Path = model.ProjectDicPath;
+            Directory.CreateDirectory(model.GenDicPath);
+            genDictWatcher.Path = model.GenDicPath;
+            Directory.CreateDirectory(model.ProjectFilesPath);
+            filesWatcher.Path = model.ProjectFilesPath;
 
-            //specDictWatcher.EnableRaisingEvents = true;
-            //genDictWatcher.EnableRaisingEvents = true;
-            //filesWatcher.EnableRaisingEvents = true;
+            specDictWatcher.EnableRaisingEvents = true;
+            genDictWatcher.EnableRaisingEvents = true;
+            filesWatcher.EnableRaisingEvents = true;
         }
 
         public void ToggleOffProject()
         {
             // Stop watching both dict folders
-            //specDictWatcher.EnableRaisingEvents = false;
-            //genDictWatcher.EnableRaisingEvents = false;
+            specDictWatcher.EnableRaisingEvents = false;
+            genDictWatcher.EnableRaisingEvents = false;
             //// Stop watching files folder
-            //filesWatcher.EnableRaisingEvents = false;
+            filesWatcher.EnableRaisingEvents = false;
         }
     }
 }
