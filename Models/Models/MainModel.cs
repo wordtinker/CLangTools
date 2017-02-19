@@ -9,15 +9,6 @@ using System.Collections.ObjectModel;
 
 namespace LangTools.Models
 {
-    public class TypedEventArgs<T> : EventArgs
-    {
-        public readonly T Content;
-        public TypedEventArgs(T content)
-        {
-            this.Content = content;
-        }
-    }
-
     public class MainModel
     {
         // Singleton implementation
@@ -42,8 +33,8 @@ namespace LangTools.Models
 
         public ObservableCollection<Lingva> Languages { get; } = new ObservableCollection<Lingva>();
         public ObservableCollection<string> Projects { get; } = new ObservableCollection<string>();
-        private List<Dict> dicts = new List<Dict>();
-        private List<FileStats> files = new List<FileStats>();
+        public ObservableCollection<Dict> Dictionaries { get; } = new ObservableCollection<Dict>();
+        public ObservableCollection<FileStats> Files { get; } = new ObservableCollection<FileStats>();
 
         internal Lingva currentLanguage;
         internal string currentProject;
@@ -76,11 +67,6 @@ namespace LangTools.Models
             }
         }
 
-        public event EventHandler<TypedEventArgs<Dict>> DictAdded;
-        public event EventHandler<TypedEventArgs<Dict>> DictRemoved;
-        public event EventHandler<TypedEventArgs<FileStats>> FileStatsAdded;
-        public event EventHandler<TypedEventArgs<FileStats>> FileStatsRemoved;
-
         /// <summary>
         /// Method that sets new storage for model.
         /// </summary>
@@ -98,32 +84,6 @@ namespace LangTools.Models
         {
             storage.GetLanguages().ForEach(Languages.Add);
         }
-
-        // Private signaling methods
-        internal void AddDict(Dict dictionary)
-        {
-            dicts.Add(dictionary);
-            DictAdded?.Invoke(this, new TypedEventArgs<Dict>(dictionary));
-        }
-
-        internal void RemoveDict(Dict dictionary)
-        {
-            dicts.Remove(dictionary);
-            DictRemoved?.Invoke(this, new TypedEventArgs<Dict>(dictionary));
-        }
-
-        internal void AddFileStats(FileStats fs)
-        {
-            files.Add(fs);
-            FileStatsAdded?.Invoke(this, new TypedEventArgs<FileStats>(fs));
-        }
-
-        internal void RemoveFileStats(FileStats fs)
-        {
-            files.Remove(fs);
-            FileStatsRemoved?.Invoke(this, new TypedEventArgs<FileStats>(fs));
-        }
-
         // Methods
 
         /// <summary>
@@ -198,14 +158,14 @@ namespace LangTools.Models
             watcher.ToggleOffProject();
             
             // Remove old dictionaries
-            while (dicts.Count > 0)
+            while (Dictionaries.Count > 0)
             {
-                RemoveDict(dicts[0]);
+                Dictionaries.RemoveAt(0);
             }
             // Remove old FileStats
-            while (files.Count > 0)
+            while (Files.Count > 0)
             {
-                RemoveFileStats(files[0]);
+                Files.RemoveAt(0);
             }
         }
 
@@ -228,7 +188,7 @@ namespace LangTools.Models
                 // Add found dictionaries to dict collection.
                 foreach (string fName in projectSpecificDics)
                 {
-                    AddDict(new Dict
+                    Dictionaries.Add(new Dict
                     {
                         FileName = fName,
                         DictType = DictType.Project,
@@ -244,7 +204,7 @@ namespace LangTools.Models
                 // Combine both specific and general dictionaries
                 foreach (string fName in generalDics)
                 {
-                    AddDict(new Dict
+                    Dictionaries.Add(new Dict
                     {
                         FileName = fName,
                         DictType = DictType.General,
@@ -276,13 +236,13 @@ namespace LangTools.Models
             // Need this order since they have more information.
             foreach (FileStats item in inDB.Intersect(inDir))
             {
-                AddFileStats(item);
+                Files.Add(item);
             }
 
             // Add files that we have in dir but no stats in DB
             foreach (FileStats item in inDir.Except(inDB))
             {
-                AddFileStats(item);
+                Files.Add(item);
             }
 
             // Remove leftover stats from DB.
@@ -350,7 +310,7 @@ namespace LangTools.Models
         /// <param name="progress"></param>
         public void Analyze(IProgress<Tuple<double, string>> progress)
         {
-            if (currentProject == null || currentLanguage == null || files.Count == 0 || dicts.Count == 0)
+            if (currentProject == null || currentLanguage == null || Files.Count == 0 || Dictionaries.Count == 0)
             {
                 // Nothing to analyze here
                 return;
@@ -370,7 +330,7 @@ namespace LangTools.Models
 
             //// Create object that handles analysis.
             Analyzer worker = new Analyzer(currentLanguage.Language);
-            worker.AddDictionaries(dicts.Select(d => d.FilePath));
+            worker.AddDictionaries(Dictionaries.Select(d => d.FilePath));
             worker.PrepareDictionaries();
             //// Create printer that will print analysis
             Printer printer = new Printer(currentLanguage.Language);
@@ -378,8 +338,8 @@ namespace LangTools.Models
             progress.Report(Tuple.Create(30d, (string)null));
 
             double percentValue = 30;
-            double step = 70.0 / files.Count();
-            foreach (FileStats file in files)
+            double step = 70.0 / Files.Count();
+            foreach (FileStats file in Files)
             {
                 percentValue += step;
                 Document docRoot = worker.AnalyzeFile(file.FilePath);

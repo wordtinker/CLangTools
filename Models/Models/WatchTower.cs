@@ -33,26 +33,26 @@ namespace LangTools.Models
             specDictWatcher.NotifyFilter = NotifyFilters.FileName;
             specDictWatcher.Filter = "*.txt";
             specDictWatcher.Created += (obj, e) =>
-                model.AddDict(new Dict
+                model.Dictionaries.Add(new Dict
                 {
                     FileName = e.Name,
                     DictType = DictType.Project,
                     FilePath = e.FullPath
                 });
             specDictWatcher.Deleted += (obj, e) =>
-                model.RemoveDict(new Dict
+                model.Dictionaries.Remove(new Dict
                 {
                     FilePath = e.FullPath
                 });
             specDictWatcher.Renamed += (obj, e) =>
             {
-                model.AddDict(new Dict
+                model.Dictionaries.Add(new Dict
                 {
                     FileName = e.Name,
                     DictType = DictType.Project,
                     FilePath = e.FullPath
                 });
-                model.RemoveDict(new Dict
+                model.Dictionaries.Remove(new Dict
                 {
                     FilePath = e.OldFullPath
                 });
@@ -63,26 +63,26 @@ namespace LangTools.Models
             genDictWatcher.NotifyFilter = NotifyFilters.FileName;
             genDictWatcher.Filter = "*.txt";
             genDictWatcher.Created += (obj, e) =>
-                model.AddDict(new Dict
+                model.Dictionaries.Add(new Dict
                 {
                     FileName = e.Name,
                     DictType = DictType.General,
                     FilePath = e.FullPath
                 });
             genDictWatcher.Deleted += (obj, e) =>
-                model.RemoveDict(new Dict
+                model.Dictionaries.Remove(new Dict
                 {
                     FilePath = e.FullPath
                 });
             genDictWatcher.Renamed += (obj, e) =>
             {
-                model.AddDict(new Dict
+                model.Dictionaries.Add(new Dict
                 {
                     FileName = e.Name,
                     DictType = DictType.General,
                     FilePath = e.FullPath
                 });
-                model.RemoveDict(new Dict
+                model.Dictionaries.Remove(new Dict
                 {
                     FilePath = e.OldFullPath
                 });
@@ -95,14 +95,14 @@ namespace LangTools.Models
             filesWatcher.NotifyFilter = NotifyFilters.FileName;
             filesWatcher.Filter = "*.txt";
             filesWatcher.Created += (obj, e) =>
-                model.AddFileStats(new FileStats(
+                model.Files.Add(new FileStats(
                     e.Name,
                     e.FullPath,
                     model.currentLanguage,
                     model.currentProject
                     ));
             filesWatcher.Deleted += (obj, e) =>
-                model.RemoveFileStats(new FileStats(
+                model.Files.Remove(new FileStats(
                     e.Name,
                     e.FullPath,
                     model.currentLanguage,
@@ -110,13 +110,13 @@ namespace LangTools.Models
                     ));
             filesWatcher.Renamed += (obj, e) =>
             {
-                model.AddFileStats(new FileStats(
+                model.Files.Add(new FileStats(
                     e.Name,
                     e.FullPath,
                     model.currentLanguage,
                     model.currentProject
                     ));
-                model.RemoveFileStats(new FileStats(
+                model.Files.Remove(new FileStats(
                     e.OldName,
                     e.OldFullPath,
                     model.currentLanguage,

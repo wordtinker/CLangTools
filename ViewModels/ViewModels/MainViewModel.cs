@@ -122,30 +122,48 @@ namespace LangTools.ViewModels
             };
 
             Dictionaries = new ObservableCollection<DictViewModel>();
-            model.DictAdded += (obj, args) => windowService.BeginInvoke(
-                new Action(() => Dictionaries.Add(new DictViewModel(windowService, args.Content))
-                ));
-            model.DictRemoved += (obj, args) => windowService.BeginInvoke(
-                new Action(() => Dictionaries.Remove(new DictViewModel(windowService, args.Content))
-                ));
+            model.Dictionaries.CollectionChanged += (obj, args) =>
+            {
+                if (args.Action == NotifyCollectionChangedAction.Add)
+                {
+                    foreach (Dict item in args.NewItems)
+                    {
+                        Dictionaries.Add(new DictViewModel(windowService, item));
+                    }
+                }
+                else if (args.Action == NotifyCollectionChangedAction.Remove)
+                {
+                    foreach (Dict item in args.OldItems)
+                    {
+                        Dictionaries.Remove(new DictViewModel(windowService, item));
+                    }
+                }
+            };
 
             Files = new ObservableCollection<FileStatsViewModel>();
-            model.FileStatsAdded += (obj, args) => windowService.BeginInvoke(
-                new Action(() =>
+            model.Files.CollectionChanged += (obj, args) =>
+            {
+                if (args.Action == NotifyCollectionChangedAction.Add)
                 {
-                    FileStatsViewModel fsvm = new FileStatsViewModel(windowService, args.Content);
-                    Files.Add(fsvm);
-                    totalUnknown += fsvm.Unknown.GetValueOrDefault();
-                    TotalWords += fsvm.Size.GetValueOrDefault();
-                }));
-            model.FileStatsRemoved += (obj, args) => windowService.BeginInvoke(
-                new Action(() =>
+                    foreach (FileStats item in args.NewItems)
+                    {
+                        FileStatsViewModel fsvm = new FileStatsViewModel(windowService, item);
+                        Files.Add(fsvm);
+                        totalUnknown += fsvm.Unknown.GetValueOrDefault();
+                        TotalWords += fsvm.Size.GetValueOrDefault();
+                    }
+                }
+                else if (args.Action == NotifyCollectionChangedAction.Remove)
                 {
-                    FileStatsViewModel fsvm = new FileStatsViewModel(windowService, args.Content);
-                    Files.Remove(fsvm);
-                    totalUnknown -= fsvm.Unknown.GetValueOrDefault();
-                    TotalWords -= fsvm.Size.GetValueOrDefault();
-                }));
+                    foreach (FileStats item in args.OldItems)
+                    {
+                        FileStatsViewModel fsvm = new FileStatsViewModel(windowService, item);
+                        Files.Remove(fsvm);
+                        totalUnknown -= fsvm.Unknown.GetValueOrDefault();
+                        TotalWords -= fsvm.Size.GetValueOrDefault();
+                    }
+                }
+            };
 
             Words = new ObservableCollection<WordViewModel>();
             WordsInProject = new ObservableCollection<WordViewModel>();
