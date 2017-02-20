@@ -12,7 +12,9 @@ using System.Collections.Specialized;
 
 namespace LangTools.ViewModels
 {
-    // TODO desc
+    /// <summary>
+    /// Simple class that does initial configuaration of the model.
+    /// </summary>
     internal static class ModelConfigurator
     {
         public static void Configure(IUIMainWindowService windowService)
@@ -26,13 +28,23 @@ namespace LangTools.ViewModels
         }
     }
 
-    // TODO desc
+    /// <summary>
+    /// Class that binds one Observable collection to another collection and
+    /// dispatches proper method invocation.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     internal class CollectionBinder<T>
     {
         private Action<T> addition;
         private Action<T> deletion;
         private IUIMainWindowService windowService;
 
+        /// <summary>
+        /// Ctor.
+        /// </summary>
+        /// <param name="addition">Action that handles addition to the new collection.</param>
+        /// <param name="deletion">Action that handles deletion from the new collection.</param>
+        /// <param name="windowService"></param>
         public CollectionBinder(Action<T> addition, Action<T> deletion, IUIMainWindowService windowService)
         {
             this.addition = addition;

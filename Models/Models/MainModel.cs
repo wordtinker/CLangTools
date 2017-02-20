@@ -8,7 +8,9 @@ using System.Collections.ObjectModel;
 
 namespace LangTools.Models
 {
-    // TODO desc
+    /// <summary>
+    /// Class that holds configuration of the model.
+    /// </summary>
     public class MainModelConfig
     {
         private MainModel mediator;
@@ -46,7 +48,7 @@ namespace LangTools.Models
             get { return outDir; }
             set { if (!string.IsNullOrWhiteSpace(value)) outDir = value; }
         }
-
+        // Derived Properties
         internal string CorpusPath
         {
             get

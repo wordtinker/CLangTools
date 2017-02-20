@@ -4,7 +4,10 @@ using System.IO;
 
 namespace LangTools.Models
 {
-    // TODO comment
+    /// <summary>
+    /// Bunch of FileSystemWatchers to track creation and 
+    /// deletion of text files and dictionaries.
+    /// </summary>
     internal class WatchTower
     {
         private FileSystemWatcher corpusWatcher;
