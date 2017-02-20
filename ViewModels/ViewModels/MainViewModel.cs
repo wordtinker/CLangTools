@@ -13,6 +13,20 @@ using System.Collections.Specialized;
 namespace LangTools.ViewModels
 {
     // TODO desc
+    internal static class ModelConfigurator
+    {
+        public static void Configure(IUIMainWindowService windowService)
+        {
+            MainModel model = MainModel.Instance;
+            model.Storage = new Storage(windowService.AppDir);
+            // TODO config common dictionary name
+            model.Config.CorpusDir = windowService.CorpusDir;
+            model.Config.DicDir = windowService.DicDir;
+            model.Config.OutDir = windowService.OutDir;
+        }
+    }
+
+    // TODO desc
     internal class CollectionBinder<T>
     {
         private Action<T> addition;
@@ -104,17 +118,10 @@ namespace LangTools.ViewModels
         // Constructors
         public MainViewModel(IUIMainWindowService windowService)
         {
-            // TODO move to builder
-            // TODO config common dic name
-            IStorage storage = new Storage(windowService.AppDir);
-            model = MainModel.Instance;
-            model.SetStorage(storage);
-            model.Config.CorpusDir = windowService.CorpusDir;
-            model.Config.DicDir = windowService.DicDir;
-            model.Config.OutDir = windowService.OutDir;
-
             this.windowService = windowService;
-
+            // Configure the model before usage.
+            ModelConfigurator.Configure(windowService);
+            model = MainModel.Instance;
             L.Logger.Debug("MainView is starting.");
 
             Languages = new ObservableCollection<LingvaViewModel>();

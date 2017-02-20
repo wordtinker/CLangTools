@@ -13,17 +13,40 @@ namespace LangTools.Models
     public class MainModelConfig
     {
         private MainModel mediator;
+        private string commonDictionaryName;
+        private string corpusDir;
+        private string dicDir;
+        private string outDir;
 
         public MainModelConfig(MainModel mediator)
         {
             this.mediator = mediator;
+            CommonDictionaryName = "Common.txt";
+            CorpusDir = "corpus";
+            DicDir = "dics";
+            OutDir = "output";
         }
 
-        // TODO should not be null or empty
-        public string CommonDictionaryName { get; set; } = "Common.txt";
-        public string CorpusDir { get; set; } = "corpus";
-        public string DicDir { get; set; } = "dics";
-        public string OutDir { get; set; } = "output";
+        public string CommonDictionaryName
+        {
+            get { return commonDictionaryName; }
+            set { if (!string.IsNullOrWhiteSpace(value)) commonDictionaryName = value; }
+        }
+        public string CorpusDir
+        {
+            get { return corpusDir; }
+            set { if (!string.IsNullOrWhiteSpace(value)) corpusDir = value; }
+        }
+        public string DicDir
+        {
+            get { return dicDir; }
+            set { if (!string.IsNullOrWhiteSpace(value)) dicDir = value; }
+        }
+        public string OutDir
+        {
+            get { return outDir; }
+            set { if (!string.IsNullOrWhiteSpace(value)) outDir = value; }
+        }
         // TODO check null
         internal string ProjectDicPath
         {
@@ -86,37 +109,27 @@ namespace LangTools.Models
 
 
         // Memmbers
-        private IStorage storage;
         private WatchTower watcher;
+        internal Lingva currentLanguage;
+        internal string currentProject;
 
         // Properties
+        public IStorage Storage { get; set; }
         public MainModelConfig Config { get; private set; }
         public ObservableCollection<Lingva> Languages { get; } = new ObservableCollection<Lingva>();
         public ObservableCollection<string> Projects { get; } = new ObservableCollection<string>();
         public ObservableCollection<Dict> Dictionaries { get; } = new ObservableCollection<Dict>();
         public ObservableCollection<FileStats> Files { get; } = new ObservableCollection<FileStats>();
 
-        internal Lingva currentLanguage;
-        internal string currentProject;
-
-        /// <summary>
-        /// Method that sets new storage for model.
-        /// </summary>
-        /// <param name="storage"></param>
-        public void SetStorage(IStorage storage)
-        {
-            // Establish DB Connection
-            this.storage = storage;
-        }
+        // Methods
 
         /// <summary>
         /// Request languages from DB.
         /// </summary>
         public void InitializeLanguages()
         {
-            storage.GetLanguages().ForEach(Languages.Add);
+            Storage.GetLanguages().ForEach(Languages.Add);
         }
-        // Methods
 
         /// <summary>
         /// Stops previously selected language from being watched.
@@ -165,13 +178,13 @@ namespace LangTools.Models
         private void RemoveOldProjects(IEnumerable<string> projectsInDir, Lingva selectedLang)
         {
             // Get known projects from DB
-            List<string> projectsInDB = storage.GetProjects(selectedLang);
+            List<string> projectsInDB = Storage.GetProjects(selectedLang);
             // Find projects left only in DB
             foreach (string leftover in projectsInDB.Except(projectsInDir))
             {
                 // Remove leftover projects
                 Log.Logger.Debug(string.Format("Deleting project:{0} - {1}", selectedLang.Language, leftover));
-                storage.RemoveProject(selectedLang, leftover);
+                Storage.RemoveProject(selectedLang, leftover);
             }
         }
 
@@ -258,7 +271,7 @@ namespace LangTools.Models
                 ));
 
             // Get list of objects from DB
-            List<FileStats> inDB = storage.GetFilesStats(currentLanguage, project);
+            List<FileStats> inDB = Storage.GetFilesStats(currentLanguage, project);
             // NB: inDB.Intersect will return elements from inDB.
             // Need this order since they have more information.
             foreach (FileStats item in inDB.Intersect(inDir))
@@ -276,7 +289,7 @@ namespace LangTools.Models
             foreach (FileStats item in inDB.Except(inDir))
             {
                 Log.Logger.Debug(string.Format("Going to remove {0} from DB", item.FileName));
-                storage.RemoveFileStats(item);
+                Storage.RemoveFileStats(item);
             }
             // Start watching files in the project.
             watcher.ToggleOnProject(Config.ProjectDicPath, Config.GenDicPath, Config.ProjectFilesPath);
@@ -289,7 +302,7 @@ namespace LangTools.Models
         public void AddNewLanguage(Lingva newLang)
         {
             // Add new language to DB.
-            storage.AddLanguage(newLang);
+            Storage.AddLanguage(newLang);
             Languages.Add(newLang);
         }
 
@@ -300,7 +313,7 @@ namespace LangTools.Models
         public void RemoveOldLanguage(Lingva language)
         {
             // Remove old language from DB
-            storage.RemoveLanguage(language);
+            Storage.RemoveLanguage(language);
             Languages.Remove(language);
         }
 
@@ -325,7 +338,7 @@ namespace LangTools.Models
             // TODO move to IOTools
             Directory.CreateDirectory(Config.ProjectOutPath);
             // Remove old stats and words for project from DB.
-            storage.RemoveProject(currentLanguage, currentProject);
+            Storage.RemoveProject(currentLanguage, currentProject);
 
             //// Create object that handles analysis.
             Analyzer worker = new Analyzer(currentLanguage.Language);
@@ -351,20 +364,20 @@ namespace LangTools.Models
                         printer.Print(file.Project, currentLanguage.Folder, docRoot);
                     }
                     // Update stats in the DB
-                    storage.UpdateStats(file);
+                    Storage.UpdateStats(file);
                     // Add new list of unknown words into DB
                     var newWords = docRoot.Tokens
                                    .Where(t => t.Stats?.Know == Klass.UNKNOWN)
                                    .Select(t => t.Stats)
                                    .Distinct();
                     // commit prevents memory leak
-                    storage.UpdateWords(file.FilePath, newWords);
-                    storage.CommitWords();
+                    Storage.UpdateWords(file.FilePath, newWords);
+                    Storage.CommitWords();
                 }
                 progress.Report(Tuple.Create(percentValue, file.FileName));
             }
             // Commit changes to DB
-            storage.CommitStats();
+            Storage.CommitStats();
 
             // Start watching for files again
             watcher.ToggleOnProject(Config.ProjectDicPath, Config.GenDicPath, Config.ProjectFilesPath);
@@ -377,7 +390,7 @@ namespace LangTools.Models
         /// <returns></returns>
         public Dictionary<string, int> GetUnknownWords(FileStats fs)
         {
-            return storage.GetUnknownWords(fs);
+            return Storage.GetUnknownWords(fs);
         }
 
         /// <summary>
@@ -388,7 +401,7 @@ namespace LangTools.Models
         {
             if (currentProject != null && currentLanguage != null)
             {
-                return storage.GetUnknownWords(currentLanguage, currentProject);
+                return Storage.GetUnknownWords(currentLanguage, currentProject);
             }
             
             return new Dictionary<string, int>();
@@ -411,7 +424,7 @@ namespace LangTools.Models
         /// <returns></returns>
         public List<string> GetFilenamesWithWord(string word)
         {
-            return storage.GetFilenamesWithWord(word);
+            return Storage.GetFilenamesWithWord(word);
         }
 
         public bool LanguageExists(string lang)
