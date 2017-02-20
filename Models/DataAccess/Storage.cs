@@ -10,6 +10,7 @@ namespace LangTools.Data
 {
     public class Storage : IStorage
     {
+        private const string dbFile = "lt.db";
         // DB connection
         private SQLiteConnection dbConn;
         // temp variables to store data for transactions
@@ -18,7 +19,7 @@ namespace LangTools.Data
 
         public Storage(string directory)
         {
-            string dbFileName = Path.Combine(directory, "lt.db");
+            string dbFileName = Path.Combine(directory, dbFile);
             string connString = string.Format("Data Source={0};Version=3;foreign keys=True;", dbFileName);
             dbConn = new SQLiteConnection(connString);
             dbConn.Open();
@@ -33,7 +34,7 @@ namespace LangTools.Data
         /// <returns></returns>
         public static bool CreateFile(string directory)
         {
-            string dbFileName = Path.Combine(directory, "lt.db");
+            string dbFileName = Path.Combine(directory, dbFile);
             if (File.Exists(dbFileName))
             {
                 return true;
