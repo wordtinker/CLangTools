@@ -28,7 +28,6 @@ namespace LangTools.Models
         private const string COMMONDICTNAME = "Common.txt";   
 
         private IStorage storage;
-
         private WatchTower watcher;
 
         public ObservableCollection<Lingva> Languages { get; } = new ObservableCollection<Lingva>();
@@ -64,6 +63,14 @@ namespace LangTools.Models
             get
             {
                 return Path.Combine(currentLanguage.Folder, CorpusDir, currentProject);
+            }
+        }
+        // TODO check null
+        internal string ProjectOutPath
+        {
+            get
+            {
+                return Path.Combine(currentLanguage.Folder, OutDir, currentProject);
             }
         }
 
@@ -294,10 +301,9 @@ namespace LangTools.Models
 
             Log.Logger.Debug("Project analysis has started.");
             progress.Report(Tuple.Create(0d, (string)null));
-            // Ensure directory structure, dict and output project specific dirs
-            //  are misssing on first run.
-            EnsureProjectStructure(currentLanguage.Folder, currentProject);
-
+            // Ensure that output directory exists
+            // TODO move to IOTools
+            Directory.CreateDirectory(ProjectOutPath);
             // Remove old stats and words for project from DB.
             storage.RemoveProject(currentLanguage, currentProject);
 
@@ -342,36 +348,6 @@ namespace LangTools.Models
 
             // Start watching for files again
             watcher.ToggleOnProject();
-        }
-
-        /// <summary>
-        /// Creates folder structure for the project.
-        /// </summary>
-        /// <param name="langPath"></param>
-        /// <param name="project"></param>
-        private void EnsureProjectStructure(string langPath, string project)
-        {
-            string projectDictDir =
-                Path.Combine(langPath,
-                DicDir,
-                project);
-            string projectOutDir =
-                Path.Combine(langPath,
-                OutDir,
-                project);
-
-            // Create subfolders
-            try
-            {
-                Directory.CreateDirectory(projectDictDir);
-                Directory.CreateDirectory(projectOutDir);
-            }
-            catch (Exception e)
-            {
-                // Not a critical error.
-                string msg = string.Format("Something is wrong during subfolder creation: {0}", e.ToString());
-                Log.Logger.Error(msg);
-            }
         }
 
         /// <summary>
