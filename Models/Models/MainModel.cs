@@ -1,7 +1,6 @@
 ﻿using LangTools.Data;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using LangTools.Shared;
 using LangTools.Core;
@@ -47,44 +46,48 @@ namespace LangTools.Models
             get { return outDir; }
             set { if (!string.IsNullOrWhiteSpace(value)) outDir = value; }
         }
-        // TODO check null
+
+        internal string CorpusPath
+        {
+            get
+            {
+                return IOTools.CombinePath(mediator.currentLanguage.Folder, CorpusDir);
+            }
+        }
+
         internal string ProjectDicPath
         {
             get
             {
-                return Path.Combine(mediator.currentLanguage.Folder, DicDir, mediator.currentProject);
+                return IOTools.CombinePath(mediator.currentLanguage.Folder, DicDir, mediator.currentProject);
             }
         }
-        // TODO check null
         internal string GenDicPath
         {
             get
             {
-                return Path.Combine(mediator.currentLanguage.Folder, DicDir);
+                return IOTools.CombinePath(mediator.currentLanguage.Folder, DicDir);
             }
         }
-        // TODO check null
         internal string ProjectFilesPath
         {
             get
             {
-                return Path.Combine(mediator.currentLanguage.Folder, CorpusDir, mediator.currentProject);
+                return IOTools.CombinePath(mediator.currentLanguage.Folder, CorpusDir, mediator.currentProject);
             }
         }
-        // TODO check null
         internal string ProjectOutPath
         {
             get
             {
-                return Path.Combine(mediator.currentLanguage.Folder, OutDir, mediator.currentProject);
+                return IOTools.CombinePath(mediator.currentLanguage.Folder, OutDir, mediator.currentProject);
             }
         }
-        // TODO check null
         internal string CommonDictionaryPath
         {
             get
             {
-                return Path.Combine(mediator.currentLanguage.Folder, DicDir, mediator.currentProject, CommonDictionaryName);
+                return IOTools.CombinePath(mediator.currentLanguage.Folder, DicDir, mediator.currentProject, CommonDictionaryName);
             }
         }
     }
@@ -157,8 +160,8 @@ namespace LangTools.Models
             currentLanguage = lang;
             IEnumerable<string> projectsInDir;
             // Start watching new language corpus folder
-            watcher.ToggleOnCorpus(Config.CorpusDir);
-            if (IOTools.ListDirectories(Config.CorpusDir, out projectsInDir))
+            watcher.ToggleOnCorpus(Config.CorpusPath);
+            if (IOTools.ListDirectories(Config.CorpusPath, out projectsInDir))
             {
                 // Remove old unused projects from DB
                 RemoveOldProjects(projectsInDir, currentLanguage);
@@ -232,7 +235,7 @@ namespace LangTools.Models
                     {
                         FileName = fName,
                         DictType = DictType.Project,
-                        FilePath = Path.Combine(Config.ProjectDicPath, fName)
+                        FilePath = IOTools.CombinePath(Config.ProjectDicPath, fName)
                     });
                 }
             }
@@ -248,7 +251,7 @@ namespace LangTools.Models
                     {
                         FileName = fName,
                         DictType = DictType.General,
-                        FilePath = Path.Combine(Config.GenDicPath, fName)
+                        FilePath = IOTools.CombinePath(Config.GenDicPath, fName)
                     });
                 }
             }
@@ -265,7 +268,7 @@ namespace LangTools.Models
             // Create FileStats object for every file name
             IEnumerable<FileStats> inDir = fileNames.Select(fName => new FileStats(
                 fName,
-                Path.Combine(Config.ProjectFilesPath, fName),
+                IOTools.CombinePath(Config.ProjectFilesPath, fName),
                 currentLanguage,
                 project
                 ));
@@ -335,8 +338,7 @@ namespace LangTools.Models
             Log.Logger.Debug("Project analysis has started.");
             progress.Report(Tuple.Create(0d, (string)null));
             // Ensure that output directory exists
-            // TODO move to IOTools
-            Directory.CreateDirectory(Config.ProjectOutPath);
+            IOTools.CreateDirectory(Config.ProjectOutPath);
             // Remove old stats and words for project from DB.
             Storage.RemoveProject(currentLanguage, currentProject);
 

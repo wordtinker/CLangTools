@@ -127,17 +127,11 @@ namespace LangTools.Models
 
         public void ToggleOnCorpus(string corpusDir)
         {
-            try
+            // folder must exist before we start watching
+            if (IOTools.CreateDirectory(corpusDir))
             {
-                Directory.CreateDirectory(corpusDir);
                 corpusWatcher.Path = corpusDir;
                 corpusWatcher.EnableRaisingEvents = true;
-            }
-            catch (Exception e)
-            {
-                // Not a critical error, could be fixed later.
-                string msg = string.Format("Something is wrong during subfolder creation or watching: {0}", e.ToString());
-                Log.Logger.Error(msg);
             }
         }
 
@@ -148,25 +142,24 @@ namespace LangTools.Models
 
         public void ToggleOnProject(string projectDicPath, string genDicPath, string projectFilesPath)
         {
-            try
-            {
-                // folder must exist before we start watching
-                Directory.CreateDirectory(projectDicPath);
-                specDictWatcher.Path = projectDicPath;
-                Directory.CreateDirectory(genDicPath);
-                genDictWatcher.Path = genDicPath;
-                Directory.CreateDirectory(projectFilesPath);
-                filesWatcher.Path = projectFilesPath;
 
-                specDictWatcher.EnableRaisingEvents = true;
-                genDictWatcher.EnableRaisingEvents = true;
-                filesWatcher.EnableRaisingEvents = true;
-            }
-            catch (Exception e)
+            // folder must exist before we start watching
+            if (IOTools.CreateDirectory(projectDicPath))
             {
-                // Not a critical error, could be fixed later.
-                string msg = string.Format("Something is wrong during subfolder creation or watching: {0}", e.ToString());
-                Log.Logger.Error(msg);
+                specDictWatcher.Path = projectDicPath;
+                specDictWatcher.EnableRaisingEvents = true;
+            }
+                
+            if (IOTools.CreateDirectory(genDicPath))
+            {
+                genDictWatcher.Path = genDicPath;
+                genDictWatcher.EnableRaisingEvents = true;
+            }
+                
+            if (IOTools.CreateDirectory(projectFilesPath))
+            {
+                filesWatcher.Path = projectFilesPath;
+                filesWatcher.EnableRaisingEvents = true;
             }
         }
 

@@ -181,5 +181,44 @@ namespace LangTools.Shared
                 return false;
             }
         }
+
+        /// <summary>
+        /// Combines an array of string into a path or null;
+        /// </summary>
+        /// <param name="pathes"></param>
+        /// <returns></returns>
+        public static string CombinePath(params string[] pathes)
+        {
+            string path = null;
+            try
+            {
+                path = Path.Combine(pathes);
+            }
+            catch (Exception e)
+            {
+                Log.Logger.Error(string.Format("Trying to create path of non existent parts?: {0}", e.Message));
+            }
+            return path;
+        }
+
+        /// <summary>
+        /// Creates directory unless it already exists.
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public static bool CreateDirectory(string path)
+        {
+            try
+            {
+                Directory.CreateDirectory(path);
+                return true;
+            }
+            catch (Exception e)
+            {
+                string msg = string.Format("Something is wrong during directory creation: {0}", e.ToString());
+                Log.Logger.Error(msg);
+                return false;
+            }
+        }
     }
 }
