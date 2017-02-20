@@ -25,10 +25,11 @@ namespace LangTools.Models
         {
             get
             {
+                // TODO ?
                 string outName = Path.ChangeExtension(FileName, ".html");
                 string outPath = Path.Combine(
                     Lingva.Folder,
-                    MainModel.Instance.OutDir,
+                    MainModel.Instance.Config.OutDir,
                     Project,
                     outName);
                 return outPath;

@@ -9,6 +9,63 @@ using System.Collections.ObjectModel;
 
 namespace LangTools.Models
 {
+    // TODO desc
+    public class MainModelConfig
+    {
+        private MainModel mediator;
+
+        public MainModelConfig(MainModel mediator)
+        {
+            this.mediator = mediator;
+        }
+
+        // TODO should not be null or empty
+        public string CommonDictionaryName { get; set; } = "Common.txt";
+        public string CorpusDir { get; set; } = "corpus";
+        public string DicDir { get; set; } = "dics";
+        public string OutDir { get; set; } = "output";
+        // TODO check null
+        internal string ProjectDicPath
+        {
+            get
+            {
+                return Path.Combine(mediator.currentLanguage.Folder, DicDir, mediator.currentProject);
+            }
+        }
+        // TODO check null
+        internal string GenDicPath
+        {
+            get
+            {
+                return Path.Combine(mediator.currentLanguage.Folder, DicDir);
+            }
+        }
+        // TODO check null
+        internal string ProjectFilesPath
+        {
+            get
+            {
+                return Path.Combine(mediator.currentLanguage.Folder, CorpusDir, mediator.currentProject);
+            }
+        }
+        // TODO check null
+        internal string ProjectOutPath
+        {
+            get
+            {
+                return Path.Combine(mediator.currentLanguage.Folder, OutDir, mediator.currentProject);
+            }
+        }
+        // TODO check null
+        internal string CommonDictionaryPath
+        {
+            get
+            {
+                return Path.Combine(mediator.currentLanguage.Folder, DicDir, mediator.currentProject, CommonDictionaryName);
+            }
+        }
+    }
+
     public class MainModel
     {
         // Singleton implementation
@@ -21,15 +78,19 @@ namespace LangTools.Models
             }
         }
         // Singleton ctor
-        private MainModel() { watcher = new WatchTower(this); }
+        private MainModel()
+        {
+            watcher = new WatchTower(this);
+            Config = new MainModelConfig(this);
+        }
 
 
         // Memmbers
-        private const string COMMONDICTNAME = "Common.txt";   
-
         private IStorage storage;
         private WatchTower watcher;
 
+        // Properties
+        public MainModelConfig Config { get; private set; }
         public ObservableCollection<Lingva> Languages { get; } = new ObservableCollection<Lingva>();
         public ObservableCollection<string> Projects { get; } = new ObservableCollection<string>();
         public ObservableCollection<Dict> Dictionaries { get; } = new ObservableCollection<Dict>();
@@ -37,42 +98,6 @@ namespace LangTools.Models
 
         internal Lingva currentLanguage;
         internal string currentProject;
-
-        public string CorpusDir { get; set; } = "corpus";
-        public string DicDir { get; set; } = "dics";
-        public string OutDir { get; set; } = "output";
-        // TODO check null
-        internal string ProjectDicPath
-        {
-            get
-            {
-                return Path.Combine(currentLanguage.Folder, DicDir, currentProject);
-            }
-        }
-        // TODO check null
-        internal string GenDicPath
-        {
-            get
-            {
-                return Path.Combine(currentLanguage.Folder, DicDir);
-            }
-        }
-        // TODO check null
-        internal string ProjectFilesPath
-        {
-            get
-            {
-                return Path.Combine(currentLanguage.Folder, CorpusDir, currentProject);
-            }
-        }
-        // TODO check null
-        internal string ProjectOutPath
-        {
-            get
-            {
-                return Path.Combine(currentLanguage.Folder, OutDir, currentProject);
-            }
-        }
 
         /// <summary>
         /// Method that sets new storage for model.
@@ -117,15 +142,10 @@ namespace LangTools.Models
         {
             Log.Logger.Debug("New language is chosen.");
             currentLanguage = lang;
-            // Determine corpus directory
-            string corpusDir = Path.Combine(
-                currentLanguage.Folder,
-                CorpusDir);
-
             IEnumerable<string> projectsInDir;
             // Start watching new language corpus folder
-            watcher.ToggleOnCorpus(corpusDir);
-            if (IOTools.ListDirectories(corpusDir, out projectsInDir))
+            watcher.ToggleOnCorpus(Config.CorpusDir);
+            if (IOTools.ListDirectories(Config.CorpusDir, out projectsInDir))
             {
                 // Remove old unused projects from DB
                 RemoveOldProjects(projectsInDir, currentLanguage);
@@ -190,7 +210,7 @@ namespace LangTools.Models
             currentProject = project;
             // Get custom project dictionaries
             IEnumerable<string> projectSpecificDics;
-            if (IOTools.ListFiles(ProjectDicPath, out projectSpecificDics))
+            if (IOTools.ListFiles(Config.ProjectDicPath, out projectSpecificDics))
             {
                 // Add found dictionaries to dict collection.
                 foreach (string fName in projectSpecificDics)
@@ -199,14 +219,14 @@ namespace LangTools.Models
                     {
                         FileName = fName,
                         DictType = DictType.Project,
-                        FilePath = Path.Combine(ProjectDicPath, fName)
+                        FilePath = Path.Combine(Config.ProjectDicPath, fName)
                     });
                 }
             }
 
             // Get general project dictionaries.
             IEnumerable<string> generalDics;
-            if (IOTools.ListFiles(GenDicPath, out generalDics))
+            if (IOTools.ListFiles(Config.GenDicPath, out generalDics))
             {
                 // Combine both specific and general dictionaries
                 foreach (string fName in generalDics)
@@ -215,14 +235,14 @@ namespace LangTools.Models
                     {
                         FileName = fName,
                         DictType = DictType.General,
-                        FilePath = Path.Combine(GenDicPath, fName)
+                        FilePath = Path.Combine(Config.GenDicPath, fName)
                     });
                 }
             }
 
             // Get file names from project dir
             IEnumerable<string> fileNames;
-            if (!IOTools.ListFiles(ProjectFilesPath, out fileNames))
+            if (!IOTools.ListFiles(Config.ProjectFilesPath, out fileNames))
             {
                 // Can't reach the folder, no sense to proceed further.
                 // TODO watcher?
@@ -232,7 +252,7 @@ namespace LangTools.Models
             // Create FileStats object for every file name
             IEnumerable<FileStats> inDir = fileNames.Select(fName => new FileStats(
                 fName,
-                Path.Combine(ProjectFilesPath, fName),
+                Path.Combine(Config.ProjectFilesPath, fName),
                 currentLanguage,
                 project
                 ));
@@ -259,7 +279,7 @@ namespace LangTools.Models
                 storage.RemoveFileStats(item);
             }
             // Start watching files in the project.
-            watcher.ToggleOnProject();
+            watcher.ToggleOnProject(Config.ProjectDicPath, Config.GenDicPath, Config.ProjectFilesPath);
         }
 
         /// <summary>
@@ -303,7 +323,7 @@ namespace LangTools.Models
             progress.Report(Tuple.Create(0d, (string)null));
             // Ensure that output directory exists
             // TODO move to IOTools
-            Directory.CreateDirectory(ProjectOutPath);
+            Directory.CreateDirectory(Config.ProjectOutPath);
             // Remove old stats and words for project from DB.
             storage.RemoveProject(currentLanguage, currentProject);
 
@@ -347,7 +367,7 @@ namespace LangTools.Models
             storage.CommitStats();
 
             // Start watching for files again
-            watcher.ToggleOnProject();
+            watcher.ToggleOnProject(Config.ProjectDicPath, Config.GenDicPath, Config.ProjectFilesPath);
         }
 
         /// <summary>
@@ -380,12 +400,8 @@ namespace LangTools.Models
         /// <param name="word"></param>
         public void AddWordToDictionary(string word)
         {
-            string filePath = Path.Combine(
-                currentLanguage.Folder,
-                DicDir,
-                currentProject, COMMONDICTNAME);
             string wordToAppend = string.Format("{0}{1}", word, Environment.NewLine);
-            IOTools.AppendToFile(filePath, wordToAppend);
+            IOTools.AppendToFile(Config.CommonDictionaryPath, wordToAppend);
         }
 
         /// <summary>

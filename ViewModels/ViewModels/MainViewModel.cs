@@ -105,12 +105,13 @@ namespace LangTools.ViewModels
         public MainViewModel(IUIMainWindowService windowService)
         {
             // TODO move to builder
+            // TODO config common dic name
             IStorage storage = new Storage(windowService.AppDir);
             model = MainModel.Instance;
             model.SetStorage(storage);
-            model.CorpusDir = windowService.CorpusDir;
-            model.DicDir = windowService.DicDir;
-            model.OutDir = windowService.OutDir;
+            model.Config.CorpusDir = windowService.CorpusDir;
+            model.Config.DicDir = windowService.DicDir;
+            model.Config.OutDir = windowService.OutDir;
 
             this.windowService = windowService;
 

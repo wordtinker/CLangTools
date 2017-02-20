@@ -129,7 +129,6 @@ namespace LangTools.Models
 
         public void ToggleOnCorpus(string corpusDir)
         {
-            // TODO drop corpusDir
             try
             {
                 Directory.CreateDirectory(corpusDir);
@@ -149,17 +148,17 @@ namespace LangTools.Models
             corpusWatcher.EnableRaisingEvents = false;
         }
 
-        public void ToggleOnProject()
+        public void ToggleOnProject(string projectDicPath, string genDicPath, string projectFilesPath)
         {
             try
             {
                 // folder must exist before we start watching
-                Directory.CreateDirectory(model.ProjectDicPath);
-                specDictWatcher.Path = model.ProjectDicPath;
-                Directory.CreateDirectory(model.GenDicPath);
-                genDictWatcher.Path = model.GenDicPath;
-                Directory.CreateDirectory(model.ProjectFilesPath);
-                filesWatcher.Path = model.ProjectFilesPath;
+                Directory.CreateDirectory(projectDicPath);
+                specDictWatcher.Path = projectDicPath;
+                Directory.CreateDirectory(genDicPath);
+                genDictWatcher.Path = genDicPath;
+                Directory.CreateDirectory(projectFilesPath);
+                filesWatcher.Path = projectFilesPath;
 
                 specDictWatcher.EnableRaisingEvents = true;
                 genDictWatcher.EnableRaisingEvents = true;
