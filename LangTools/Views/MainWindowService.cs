@@ -59,7 +59,7 @@ namespace LangTools.Views
         {
             get
             {
-                return (string)App.Current.Properties["appName"];
+                return Tools.ReadSetting("appName");
             }
         }
 
@@ -67,7 +67,7 @@ namespace LangTools.Views
         {
             get
             {
-                return (string)App.Current.Properties["corpusDir"];
+                return Tools.ReadSetting("corpus");
             }
         }
 
@@ -75,7 +75,7 @@ namespace LangTools.Views
         {
             get
             {
-                return (string)App.Current.Properties["dicDir"];
+                return Tools.ReadSetting("dictionaries");
             }
         }
 
@@ -83,7 +83,7 @@ namespace LangTools.Views
         {
             get
             {
-                return (string)App.Current.Properties["outputDir"];
+                return Tools.ReadSetting("output");
             }
         }
 

@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Configuration;
 using System.Windows;
-using System.IO;
 using LangTools.Shared;
 using LangTools.ViewModels;
 
@@ -13,44 +11,6 @@ namespace LangTools
     public partial class App : Application
     {
         /// <summary>
-        /// Loads settings from configuaration file.
-        /// </summary>
-        /// <param name="applicationName"></param>
-        /// <returns></returns>
-        private bool LoadConfig(out string applicationName)
-        {
-            try
-            {
-                applicationName = ConfigurationManager.AppSettings["appName"];
-                string dicDir = ConfigurationManager.AppSettings["dictionaries"];
-                string corpusDir = ConfigurationManager.AppSettings["corpus"];
-                string outputDir = ConfigurationManager.AppSettings["output"];
-
-                if (applicationName == null || applicationName == "" ||
-                    dicDir == null || dicDir == "" ||
-                    corpusDir == null || corpusDir == "" ||
-                    outputDir == null || outputDir == "")
-                {
-                    return false;
-                }
-                else
-                {
-                    // Store app name in global properties
-                    Current.Properties["appName"] = applicationName;
-                    Current.Properties["dicDir"] = dicDir;
-                    Current.Properties["corpusDir"] = corpusDir;
-                    Current.Properties["outputDir"] = outputDir;
-                    return true;
-                }
-            }
-            catch (ConfigurationErrorsException)
-            {
-                applicationName = null;
-                return false;
-            }
-        }
-
-        /// <summary>
         /// Prepares environmental settings for app and starts.
         /// </summary>
         /// <param name="sender"></param>
@@ -58,8 +18,8 @@ namespace LangTools
         private void ApplicationStartup(object sender, StartupEventArgs e)
         {
             // Get app name from config file
-            string appName;
-            if (!LoadConfig(out appName))
+            string appName = Tools.ReadSetting("appName");
+            if (string.IsNullOrWhiteSpace(appName))
             {
                 MessageBox.Show("Error reading app settings.\nLangTools can't start.");
                 return;
@@ -76,19 +36,14 @@ namespace LangTools
                 MessageBox.Show("Platform is not supported.\nLangTools can't start.");
                 return;
             }
-            appDir = Path.Combine(appDir, appName);
+            appDir = IOTools.CombinePath(appDir, appName);
+            // Save application directory path for later
             Current.Properties["appDir"] = appDir;
 
             // Create directory if not exist
-            DirectoryInfo dir;
-            try
+            if (!IOTools.CreateDirectory(appDir))
             {
-                dir = Directory.CreateDirectory(appDir);
-            }
-            catch (Exception err)
-            {
-                MessageBox.Show(string.Format("Something bad happened in {0} directory.\nLangTools can't start.\nError:{1}",
-                    appDir, err.ToString()));
+                MessageBox.Show(string.Format("Something bad happened in {0} directory.\nLangTools can't start.", appDir));
                 return;
             }
 
