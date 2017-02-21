@@ -21,7 +21,7 @@ namespace LangTools.ViewModels
         {
             MainModel model = MainModel.Instance;
             model.Storage = new Storage(windowService.AppDir);
-            // TODO config common dictionary name
+            model.Config.CommonDictionaryName = windowService.CommonDictionaryName;
             model.Config.CorpusDir = windowService.CorpusDir;
             model.Config.DicDir = windowService.DicDir;
             model.Config.OutDir = windowService.OutDir;

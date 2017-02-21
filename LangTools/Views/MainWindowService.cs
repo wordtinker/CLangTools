@@ -47,6 +47,14 @@ namespace LangTools.Views
             this.mainWindow = mainWindow;
         }
 
+        public string CommonDictionaryName
+        {
+            get
+            {
+                return Tools.ReadSetting("CommonDictionaryName");
+            }
+        }
+
         public string AppDir
         {
             get

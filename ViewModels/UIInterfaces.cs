@@ -11,6 +11,7 @@ namespace LangTools.ViewModels
 
     public interface IUIMainWindowService : IUIBaseService
     {
+        string CommonDictionaryName { get; }
         string AppDir { get; }
         string AppName { get; }
         string CorpusDir { get; }
