@@ -263,7 +263,6 @@ namespace LangTools.Models
             if (!IOTools.ListFiles(Config.ProjectFilesPath, out fileNames))
             {
                 // Can't reach the folder, no sense to proceed further.
-                // TODO watcher?
                 return;
             }
 
