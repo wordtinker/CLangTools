@@ -220,5 +220,24 @@ namespace LangTools.Shared
                 return false;
             }
         }
+
+        /// <summary>
+        /// Changes extensions of the fileName or null.
+        /// </summary>
+        /// <param name="fileName"></param>
+        /// <param name="newExt"></param>
+        /// <returns></returns>
+        public static string ChangeExtension(string fileName, string newExt)
+        {
+            try
+            {
+                return Path.ChangeExtension(fileName, newExt);
+            }
+            catch (Exception e)
+            {
+                Log.Logger.Error(string.Format("Trying to rename non-existent path ?: {0}", e.Message));
+                return null;
+            }
+        }
     }
 }

@@ -9,6 +9,8 @@ using Prism.Commands;
 using L = LangTools.Shared.Log;
 using LangTools.Data;
 using System.Collections.Specialized;
+using LangTools.Shared;
+using System.IO;
 
 namespace LangTools.ViewModels
 {
@@ -25,6 +27,7 @@ namespace LangTools.ViewModels
             model.Config.CorpusDir = windowService.CorpusDir;
             model.Config.DicDir = windowService.DicDir;
             model.Config.OutDir = windowService.OutDir;
+            model.Config.StyleDirectoryPath = IOTools.CombinePath(Directory.GetCurrentDirectory(), "plugins");
         }
     }
 

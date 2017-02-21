@@ -26,8 +26,10 @@ namespace LangTools.Models
             CorpusDir = "corpus";
             DicDir = "dics";
             OutDir = "output";
+            StyleDirectoryPath = null;
         }
 
+        public string StyleDirectoryPath { get; set; }
         public string CommonDictionaryName
         {
             get { return commonDictionaryName; }

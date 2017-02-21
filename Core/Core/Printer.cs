@@ -8,6 +8,9 @@ namespace LangTools.Core
     /// </summary>
     public class HTMLPrinter
     {
+        public const string EXT = ".html";
+        public const string STYLEEXT = ".css";
+
         private string css;
 
         public void LoadCSS(string cssContent)

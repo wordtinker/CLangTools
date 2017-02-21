@@ -1,5 +1,4 @@
 ﻿using LangTools.Shared;
-using System.IO;
 using LangTools.Core;
 
 namespace LangTools.Models
@@ -17,35 +16,42 @@ namespace LangTools.Models
             this.mediator = mediator;
         }
 
-        // TODO
         public void LoadStyle()
         {
             // Load CSS file
-            //string cssContent;
-            //string cssPath = Path.Combine(Directory.GetCurrentDirectory(), "plugins", language);
-            //cssPath = Path.ChangeExtension(cssPath, ".css");
-            //if (IOTools.ReadAllText(cssPath, out cssContent))
-            //{
-            //    printer.LoadCSS(cssContent);
-            //}
+            string cssContent;
+            string cssDir = mediator.Config.StyleDirectoryPath;
+            string cssPath = IOTools.CombinePath(cssDir, mediator.currentLanguage.Language);
+            cssPath = IOTools.ChangeExtension(cssPath, HTMLPrinter.STYLEEXT);
+            if (IOTools.ReadAllText(cssPath, out cssContent))
+            {
+                printer.LoadCSS(cssContent);
+            }
         }
 
-        // TODO desc
+        /// <summary>
+        /// Creates marked up output file for a given Item and
+        /// return path of the created file.
+        /// </summary>
+        /// <param name="root"></param>
+        /// <returns></returns>
         public string Print(Item root)
         {
             // Get the HTML and save
             string HTML = printer.toHTML(root);
             string outPath = GetOutPath(root.Name);
-            IOTools.SaveFile(outPath, HTML);
-            return outPath;
+            return IOTools.SaveFile(outPath, HTML) ? outPath : null; 
         }
 
-        // TODO desc
+        /// <summary>
+        /// Provides path to an output file created for a given fileName
+        /// of the current project.
+        /// </summary>
+        /// <param name="fileName"></param>
+        /// <returns></returns>
         public string GetOutPath(string fileName)
         {
-            // TODO IOTools
-            // TODO const
-            string outName = Path.ChangeExtension(fileName, ".html");
+            string outName = IOTools.ChangeExtension(fileName, HTMLPrinter.EXT);
             return IOTools.CombinePath(mediator.Config.ProjectOutPath, outName);
         }
     }
