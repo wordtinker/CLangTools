@@ -109,12 +109,14 @@ namespace LangTools.Models
         private MainModel()
         {
             watcher = new WatchTower(this);
+            printer = new Printer(this);
             Config = new MainModelConfig(this);
         }
 
 
         // Memmbers
         private WatchTower watcher;
+        private Printer printer;
         internal Lingva currentLanguage;
         internal string currentProject;
 
@@ -280,10 +282,8 @@ namespace LangTools.Models
             // Need this order since they have more information.
             foreach (FileStats item in inDB.Intersect(inDir))
             {
-                // TODO !!!
                 // Files from DB have output page already
-                string outName = Printer.OutFileName(item.FileName);
-                item.OutPath = IOTools.CombinePath(Config.ProjectOutPath, outName);
+                item.OutPath = printer.GetOutPath(item.FileName);
                 Files.Add(item);
             }
 
@@ -351,9 +351,8 @@ namespace LangTools.Models
             Analyzer worker = new Analyzer(currentLanguage.Language);
             worker.AddDictionaries(Dictionaries.Select(d => d.FilePath));
             worker.PrepareDictionaries();
-            //// Create printer that will print analysis
-            Printer printer = new Printer(currentLanguage.Language);
-
+            // Reload style for analyzed project
+            printer.LoadStyle();
             progress.Report(Tuple.Create(30d, (string)null));
 
             double percentValue = 30;
@@ -367,12 +366,9 @@ namespace LangTools.Models
                     // Compare old and new stats
                     if (file.Update(docRoot.Size, docRoot.Known, docRoot.Maybe))
                     {
-                        // TODO !!!!
-                        string outName = Printer.OutFileName(file.FileName);
-                        string outPath = IOTools.CombinePath(Config.ProjectOutPath, outName);
-                        file.OutPath = outPath;
                         // Produce new output page
-                        printer.Print(outPath, docRoot);
+                        string outPath = printer.Print(docRoot);
+                        file.OutPath = outPath;
                     }
                     // Update stats in the DB
                     Storage.UpdateStats(file);

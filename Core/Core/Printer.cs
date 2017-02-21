@@ -1,48 +1,12 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using LangTools.Shared;
+﻿using System.Text;
 using System.Linq;
 
 namespace LangTools.Core
 {
     /// <summary>
-    /// Manages the printing of the output page.
-    /// </summary>
-    public class Printer
-    {
-        public static string OutFileName(string fileName)
-        {
-            return Path.ChangeExtension(fileName, ".html");
-        } 
-
-        private HTMLPrinter printer = new HTMLPrinter();
-
-        public Printer(string language)
-        {
-            // Load CSS file
-            string cssContent;
-            string cssPath = Path.Combine(Directory.GetCurrentDirectory(), "plugins", language);
-            cssPath = Path.ChangeExtension(cssPath, ".css");
-            if (IOTools.ReadAllText(cssPath, out cssContent))
-            {
-                printer.LoadCSS(cssContent);
-            }
-        }
-
-        public void Print(string outPath, Item root)
-        {
-            // Get the HTML and save
-            string HTML = printer.toHTML(root);
-            IOTools.SaveFile(outPath, HTML);
-        }
-    }
-
-    /// <summary>
     /// Transfroms word tokens into valid HTML page.
     /// </summary>
-    class HTMLPrinter
+    public class HTMLPrinter
     {
         private string css;
 

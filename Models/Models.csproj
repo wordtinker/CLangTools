@@ -61,6 +61,7 @@
     <Compile Include="Models\FileStats.cs" />
     <Compile Include="Models\Lingva.cs" />
     <Compile Include="Models\MainModel.cs" />
+    <Compile Include="Models\Printer.cs" />
     <Compile Include="Models\WatchTower.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
