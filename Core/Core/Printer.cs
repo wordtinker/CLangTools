@@ -12,6 +12,11 @@ namespace LangTools.Core
     /// </summary>
     public class Printer
     {
+        public static string OutFileName(string fileName)
+        {
+            return Path.ChangeExtension(fileName, ".html");
+        } 
+
         private HTMLPrinter printer = new HTMLPrinter();
 
         public Printer(string language)
@@ -26,16 +31,8 @@ namespace LangTools.Core
             }
         }
 
-        public void Print(string project, string language, Item root)
+        public void Print(string outPath, Item root)
         {
-            // Create proper name for output file;
-            string outName = Path.ChangeExtension(root.Name, ".html");
-            // TODO
-            // string outPath = Path.Combine(language, (string)App.Current.Properties["outputDir"],
-            //                              project, outName);
-            string outPath = Path.Combine(language, "output",
-                                          project, outName);
-
             // Get the HTML and save
             string HTML = printer.toHTML(root);
             IOTools.SaveFile(outPath, HTML);

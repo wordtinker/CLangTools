@@ -280,6 +280,10 @@ namespace LangTools.Models
             // Need this order since they have more information.
             foreach (FileStats item in inDB.Intersect(inDir))
             {
+                // TODO !!!
+                // Files from DB have output page already
+                string outName = Printer.OutFileName(item.FileName);
+                item.OutPath = IOTools.CombinePath(Config.ProjectOutPath, outName);
                 Files.Add(item);
             }
 
@@ -363,8 +367,12 @@ namespace LangTools.Models
                     // Compare old and new stats
                     if (file.Update(docRoot.Size, docRoot.Known, docRoot.Maybe))
                     {
+                        // TODO !!!!
+                        string outName = Printer.OutFileName(file.FileName);
+                        string outPath = IOTools.CombinePath(Config.ProjectOutPath, outName);
+                        file.OutPath = outPath;
                         // Produce new output page
-                        printer.Print(file.Project, currentLanguage.Folder, docRoot);
+                        printer.Print(outPath, docRoot);
                     }
                     // Update stats in the DB
                     Storage.UpdateStats(file);

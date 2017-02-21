@@ -56,6 +56,7 @@ namespace LangTools.Core
         public void PrepareDictionaries()
         {
             // Load plugin into lexer if we have plugin
+            // TODO ?
             string jsonPlugin;
             string pluginPath = Path.Combine(Directory.GetCurrentDirectory(), "plugins", language);
             pluginPath = Path.ChangeExtension(pluginPath, ".json");

@@ -76,10 +76,12 @@ namespace LangTools.ViewModels
 
         public void OpenOutput()
         {
-            
-            if (!IOTools.OpenWithDefault(OutPath))
+            if (OutPath != null)
             {
-                windowService.ShowMessage(string.Format("Can't open {0}.", OutPath));
+                if (!IOTools.OpenWithDefault(OutPath))
+                {
+                    windowService.ShowMessage(string.Format("Can't open {0}.", OutPath));
+                }
             }
         }
 
@@ -93,7 +95,7 @@ namespace LangTools.ViewModels
 
         public void DeleteOutput()
         {
-            if (windowService.Confirm(string.Format("Do you want to delete\n {0} ?", OutPath)))
+            if (OutPath != null && windowService.Confirm(string.Format("Do you want to delete\n {0} ?", OutPath)))
             {
                 if (!IOTools.DeleteFile(OutPath))
                 {

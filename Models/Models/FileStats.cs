@@ -1,48 +1,28 @@
-﻿using System.IO;
-using Prism.Mvvm;
+﻿using Prism.Mvvm;
 
 namespace LangTools.Models
 {
     public class FileStats : BindableBase
     {
-        // Members
-        private string fileName;
-        private string filePath;
-        private Lingva lingva;
-        private string project;
-                
         // Properties
-        public string FileName { get { return fileName; } }
-        public string FilePath { get { return filePath; } }
-        public Lingva Lingva { get { return lingva; } }
-        public string Project { get { return project; } }
+        public string FileName { get; private set; }
+        public string FilePath { get; private set; }
+        public Lingva Lingva { get; private set; }
+        public string Project { get; private set; }
 
         public int? Size { get; set; }
         public int? Known { get; set; }
         public int? Maybe { get; set; }
         public int? Unknown { get; set; }
-        public string OutPath
-        {
-            get
-            {
-                // TODO ?
-                string outName = Path.ChangeExtension(FileName, ".html");
-                string outPath = Path.Combine(
-                    Lingva.Folder,
-                    MainModel.Instance.Config.OutDir,
-                    Project,
-                    outName);
-                return outPath;
-            }
-        }
+        public string OutPath { get; internal set; }
 
         // Constructor
         public FileStats(string fileName, string filePath, Lingva language, string project)
         {
-            this.fileName = fileName;
-            this.filePath = filePath;
-            this.lingva = language;
-            this.project = project;
+            FileName = fileName;
+            FilePath = filePath;
+            Lingva = language;
+            Project = project;
         }
 
         // Methods
