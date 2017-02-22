@@ -57,6 +57,7 @@
   <ItemGroup>
     <Compile Include="DataAccess\IStorage.cs" />
     <Compile Include="DataAccess\Storage.cs" />
+    <Compile Include="Models\Analyzer.cs" />
     <Compile Include="Models\Dict.cs" />
     <Compile Include="Models\FileStats.cs" />
     <Compile Include="Models\Lingva.cs" />

@@ -350,7 +350,7 @@ namespace LangTools.Models
             Storage.RemoveProject(currentLanguage, currentProject);
 
             //// Create object that handles analysis.
-            Analyzer worker = new Analyzer(currentLanguage.Language);
+            Analyzer worker = new Analyzer(this);
             worker.AddDictionaries(Dictionaries.Select(d => d.FilePath));
             worker.PrepareDictionaries();
             // Reload style for analyzed project
@@ -362,7 +362,7 @@ namespace LangTools.Models
             foreach (FileStats file in Files)
             {
                 percentValue += step;
-                Document docRoot = worker.AnalyzeFile(file.FilePath);
+                Document docRoot = worker.AnalyzeFile(file);
                 if (docRoot != null)
                 {
                     // Compare old and new stats

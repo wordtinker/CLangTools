@@ -1,89 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web.Script.Serialization;
-using LangTools.Shared;
 
 namespace LangTools.Core
 {
     /// <summary>
-    /// Class that binds file IO and Lexer class.
-    /// </summary>
-    public class Analyzer
-    {
-        private IEnumerable<string> dictPathes;
-        private Lexer lexer = new Lexer();
-        private string language;
-
-        public Analyzer(string language)
-        {
-            this.language = language;
-        }
-
-        public void AddDictionaries(IEnumerable<string> dNames)
-        {
-            this.dictPathes = dNames;
-        }
-
-        public Document AnalyzeFile(string path)
-        {
-            Log.Logger.Debug(string.Format("Analyzing the file: {0}", path));
-            string[] content;
-            if (IOTools.ReadAllLines(path, out content))
-            {
-                // Build composite tree
-                TokenizerWithStats tknz = new TokenizerWithStats();
-                Document root = new Document { Name = Path.GetFileName(path) };
-                foreach(string paragraph in content)
-                {
-                    Item para = new Paragraph();
-                    root.AddItem(para);
-                    foreach (Token token in tknz.Enumerate(paragraph))
-                    {
-                        para.AddItem(token);
-                    }
-                }
-                return lexer.AnalyzeText(root);
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        public void PrepareDictionaries()
-        {
-            // Load plugin into lexer if we have plugin
-            // TODO ?
-            string jsonPlugin;
-            string pluginPath = Path.Combine(Directory.GetCurrentDirectory(), "plugins", language);
-            pluginPath = Path.ChangeExtension(pluginPath, ".json");
-            if (IOTools.ReadAllText(pluginPath, out jsonPlugin))
-            {
-                lexer.LoadPlugin(jsonPlugin);
-            }
-            // Load dictionaries
-            foreach (string path in dictPathes)
-            {
-                Log.Logger.Debug(string.Format("Analyzing with: {0}", path));
-                string content;
-                if (IOTools.ReadAllText(path, out content))
-                {
-                    lexer.LoadDictionary(content);
-                }
-            }
-            // Expand dictionary
-            lexer.ExpandDictionary();
-        }
-    }
-
-    /// <summary>
     /// Uses dictionary to mark word tokens as known.
     /// </summary>
-    class Lexer
+    public class Lexer
     {
+        public const string EXT = ".json";
         /// <summary>
         /// Shows if the word came from dictionary or was expanded by rules.
         /// </summary>
@@ -253,7 +181,7 @@ namespace LangTools.Core
     /// Class that yileds word tokens from a string
     /// with bound TokenStats object for each token.
     /// </summary>
-    class TokenizerWithStats
+    public class TokenizerWithStats
     {
         private TokenStatsFlyweightFactory factory = new TokenStatsFlyweightFactory();
         
@@ -273,7 +201,7 @@ namespace LangTools.Core
     /// <summary>
     /// Class that yields word tokens from a string.
     /// </summary>
-    static class Tokenizer
+    public static class Tokenizer
     {
         // Prepare regex statement
         // Any word including words with hebrew specific chars
