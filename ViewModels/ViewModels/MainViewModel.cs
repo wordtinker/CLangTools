@@ -396,9 +396,8 @@ namespace LangTools.ViewModels
         {
             get
             {
-                return DelegateCommand
-                    .FromAsyncHandler(() => HandleAnalysis())
-                    .ObservesCanExecute(p => ProjectSelectable);
+                return new DelegateCommand(async () => await HandleAnalysis())
+                    .ObservesCanExecute(() => ProjectSelectable);
             }
         }
 
