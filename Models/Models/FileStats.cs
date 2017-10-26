@@ -36,7 +36,7 @@ namespace LangTools.Models
                 this.Maybe = newMaybe;
                 this.Unknown = newSize - newKnown - newMaybe;
                 // Raise All properties changed
-                OnPropertyChanged(string.Empty);
+                RaisePropertyChanged(string.Empty);
                 return true;
             }
 

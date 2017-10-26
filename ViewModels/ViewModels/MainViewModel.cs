@@ -101,7 +101,7 @@ namespace LangTools.ViewModels
             {
                 if (SetProperty(ref totalWords, value))
                 {
-                    OnPropertyChanged(() => UnknownPercent);
+                    RaisePropertyChanged(nameof(UnknownPercent));
                 }
             }
         }

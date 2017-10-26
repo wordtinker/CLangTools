@@ -60,7 +60,7 @@ namespace LangTools.ViewModels
             this.fileStats.PropertyChanged += (obj, e) =>
             {
                 // Raise all properties changed
-                OnPropertyChanged(string.Empty);
+                RaisePropertyChanged(string.Empty);
             };
         }
 

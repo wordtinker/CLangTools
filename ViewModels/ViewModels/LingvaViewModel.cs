@@ -28,7 +28,7 @@ namespace LangTools.ViewModels
                 if (currentLanguage.Language != value)
                 {
                     currentLanguage.Language = value;
-                    OnPropertyChanged();
+                    RaisePropertyChanged();
                 }
             }
         }
@@ -41,7 +41,7 @@ namespace LangTools.ViewModels
                 if(currentLanguage.Folder != value)
                 {
                     currentLanguage.Folder = value;
-                    OnPropertyChanged();
+                    RaisePropertyChanged();
                 }
             }
         }
@@ -54,7 +54,7 @@ namespace LangTools.ViewModels
                 if (allPropertiesValid != value)
                 {
                     allPropertiesValid = value;
-                    OnPropertyChanged();
+                    RaisePropertyChanged();
                 }
             }
         }

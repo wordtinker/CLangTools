@@ -1,6 +1,7 @@
 LangTools/bin/
 LangTools/obj/
 LangTools/packages/
+LangTools/.vs/
 Core/bin/
 Core/obj/
 Core/packages/
