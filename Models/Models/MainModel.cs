@@ -331,7 +331,7 @@ namespace LangTools.Models
         /// Makes analysis of the project files.
         /// </summary>
         /// <param name="progress"></param>
-        public void Analyze(IProgress<Tuple<double, string>> progress)
+        public void Analyze(IProgress<(double, string)> progress)
         {
             if (currentProject == null || currentLanguage == null || Files.Count == 0 || Dictionaries.Count == 0)
             {
@@ -343,7 +343,7 @@ namespace LangTools.Models
             watcher.ToggleOffProject();
 
             Log.Logger.Debug("Project analysis has started.");
-            progress.Report(Tuple.Create(0d, (string)null));
+            progress.Report((0d, (string)null));
             // Ensure that output directory exists
             IOTools.CreateDirectory(Config.ProjectOutPath);
             // Remove old stats and words for project from DB.
@@ -355,7 +355,7 @@ namespace LangTools.Models
             worker.PrepareDictionaries();
             // Reload style for analyzed project
             printer.LoadStyle();
-            progress.Report(Tuple.Create(30d, (string)null));
+            progress.Report((30d, (string)null));
 
             double percentValue = 30;
             double step = 70.0 / Files.Count();
@@ -383,7 +383,7 @@ namespace LangTools.Models
                     Storage.UpdateWords(file.FilePath, newWords);
                     Storage.CommitWords();
                 }
-                progress.Report(Tuple.Create(percentValue, file.FileName));
+                progress.Report((percentValue, file.FileName));
             }
             // Commit changes to DB
             Storage.CommitStats();

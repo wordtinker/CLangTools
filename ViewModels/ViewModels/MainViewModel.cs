@@ -281,14 +281,14 @@ namespace LangTools.ViewModels
             ProgressValue = 0;
             L.Logger.Debug("Requesting Project analysis.");
 
-            await Task.Run(() => model.Analyze(new Progress<Tuple<double, string>>(
+            await Task.Run(() => model.Analyze(new Progress<(double Progress, string FileName)>(
                 p =>
                 {
                     //Update the visual progress of the analysis.
-                    ProgressValue = Convert.ToInt32(p.Item1);
-                    if (p.Item2 != null)
+                    ProgressValue = Convert.ToInt32(p.Progress);
+                    if (p.FileName != null)
                     {
-                        Log = string.Format("{0} is ready!", p.Item2);
+                        Log = string.Format("{0} is ready!", p.FileName);
                     }
                 }
                 )));
